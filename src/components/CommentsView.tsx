@@ -4,6 +4,7 @@ import { Comment, GeminiComment, GptComment, ClaudeComment } from '../lib/databa
 import { MessageSquare, ExternalLink, Calendar, User, Tag, X, FileText, Search, Filter, Bot, Sparkles, ChevronDown, ChevronUp, Copy, Check, RefreshCw } from 'lucide-react';
 import { DateRangePicker } from './DateRangePicker';
 import { useAuth } from '../contexts/AuthContext';
+import { webhookUrls } from '../lib/webhooks';
 
 const PAGE_SIZE = 15;
 
@@ -420,7 +421,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         vertical: selectedComment.vertical || ''
       };
 
-      const response = await fetch('https://enderjp.app.n8n.cloud/webhook/update/gemini-comments', {
+      const response = await fetch(webhookUrls.regenerateGemini, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -463,7 +464,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         vertical: selectedComment.vertical || ''
       };
 
-      const response = await fetch('https://enderjp.app.n8n.cloud/webhook/update/gpt-comments', {
+      const response = await fetch(webhookUrls.regenerateGpt, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -506,7 +507,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         vertical: selectedComment.vertical || ''
       };
 
-      const response = await fetch('https://enderjp.app.n8n.cloud/webhook/update/claude-comments', {
+      const response = await fetch(webhookUrls.regenerateClaude, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -551,7 +552,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         mediaType: selectedComment.mediaType || 'video'
       };
 
-      const response = await fetch('https://enderjp.app.n8n.cloud/webhook/CSUpdate-Script', {
+      const response = await fetch(webhookUrls.regenerateScript, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

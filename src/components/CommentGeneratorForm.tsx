@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Loader2, Send, AlertCircle, CheckCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { webhookUrls } from '../lib/webhooks';
 
 interface FormData {
   agentCS: string;
@@ -218,7 +219,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
 
       console.log('Sending payload:', payload);
 
-      const response = await fetch('https://enderjp.app.n8n.cloud/webhook/urls-data', {
+      const response = await fetch(webhookUrls.createComments, {
         method: 'POST',
         mode: 'cors',
         headers: {

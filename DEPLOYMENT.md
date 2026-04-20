@@ -5,7 +5,7 @@
 - Es una SPA de Vite/React que genera archivos estaticos en `dist/`.
 - El frontend usa `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`.
 - La autenticacion de Supabase usa `window.location.origin` y la ruta `/auth/confirm`.
-- Hay webhooks de n8n hardcodeados en el frontend. La app puede desplegarse asi, pero conviene moverlos a variables de entorno antes de publicar varios entornos.
+- Los webhooks de n8n se cargan desde variables `VITE_` del frontend.
 
 ## Checklist antes de subir a GitHub
 
@@ -15,6 +15,18 @@
    `npm install`
 4. Luego valida:
    `npm run build`
+
+## Variables necesarias en `.env`
+
+```env
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+VITE_N8N_WEBHOOK_URLS_DATA=
+VITE_N8N_WEBHOOK_UPDATE_GEMINI_COMMENTS=
+VITE_N8N_WEBHOOK_UPDATE_GPT_COMMENTS=
+VITE_N8N_WEBHOOK_UPDATE_CLAUDE_COMMENTS=
+VITE_N8N_WEBHOOK_UPDATE_SCRIPT=
+```
 
 ## Crear el repo local y subirlo a GitHub
 
@@ -47,6 +59,11 @@
 7. Agrega variables de entorno de build:
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
+   - `VITE_N8N_WEBHOOK_URLS_DATA`
+   - `VITE_N8N_WEBHOOK_UPDATE_GEMINI_COMMENTS`
+   - `VITE_N8N_WEBHOOK_UPDATE_GPT_COMMENTS`
+   - `VITE_N8N_WEBHOOK_UPDATE_CLAUDE_COMMENTS`
+   - `VITE_N8N_WEBHOOK_UPDATE_SCRIPT`
 8. En paginas personalizadas, configura `Catchall document` como `index.html`.
 
 ### Opcion 2: con app spec despues
@@ -68,4 +85,4 @@ Cuando ya tengas el repo creado, puedes versionar un `.do/app.yaml` para repetir
 - `vercel.json` ya no es necesario si te quedas en DigitalOcean.
 - `public/_redirects` es util para Netlify, no para App Platform.
 - `.bolt/` puede dejarse fuera del repo si solo fue parte del export.
-- Los endpoints de n8n deberian moverse a variables de entorno antes de manejar varios entornos.
+- Las variables `VITE_` del frontend no son secretas en produccion; si necesitas ocultar esos webhooks, debes mover la llamada a un backend o edge function.
