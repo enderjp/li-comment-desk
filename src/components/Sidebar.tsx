@@ -21,7 +21,7 @@ export function Sidebar({ currentView, onNavigate }: SidebarProps) {
     <div className="w-64 bg-slate-900 min-h-screen flex flex-col">
       <div className="p-6 border-b border-slate-800">
         <h1 className="text-2xl font-bold text-white">Leads Icon</h1>
-        <p className="text-sm text-slate-400 mt-1">Social Media Manager</p>
+        <p className="text-sm text-slate-400 mt-1">Comment Desk</p>
       </div>
 
       <nav className="flex-1 p-4 space-y-2">
