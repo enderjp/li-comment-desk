@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Notification Navigation</title>
+</head>
+<body>
+  <h1>Test Notification Navigation</h1>
+  <button id="testBtn">Enviar notificación de prueba</button>
+  <pre id="result"></pre>
+
+  <script type="module">
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+
+    document.getElementById('testBtn').addEventListener('click', async () => {
+      const result = document.getElementById('result');
+
+      try {
+        // Primero, obtén un comentario real de la base de datos para usar su request_id
+        const commentsResponse = await fetch(`${SUPABASE_URL}/rest/v1/comments?limit=1`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          }
+        });
+
+        const comments = await commentsResponse.json();
+        console.log('Comments:', comments);
+
+        if (comments.length === 0) {
+          result.textContent = 'No hay comentarios en la base de datos para probar';
+          return;
+        }
+
+        const testComment = comments[0];
+        result.textContent = `Comentario encontrado:\n${JSON.stringify(testComment, null, 2)}\n\n`;
+
+        // Ahora envía la notificación usando el request_id correcto
+        const payload = {
+          userId: "YOUR_USER_ID", // Reemplaza con tu user ID
+          title: "Nuevo script generado",
+          message: `El nuevo script para '${testComment.url}' ha sido generado exitosamente`,
+          adset: testComment.adset,
+          requestId: testComment.request_id // Este debe ser un número
+        };
+
+        result.textContent += `Enviando notificación:\n${JSON.stringify(payload, null, 2)}\n\n`;
+
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/create-notification`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        result.textContent += `Respuesta:\n${JSON.stringify(data, null, 2)}`;
+
+      } catch (error) {
+        result.textContent = `Error: ${error.message}`;
+        console.error(error);
+      }
+    });
+  </script>
+</body>
+</html>

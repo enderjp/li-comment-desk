@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Notificaciones</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .notification { border: 1px solid #ccc; padding: 15px; margin: 10px 0; }
+        .has-request { background-color: #e8f5e9; }
+        .no-request { background-color: #ffebee; }
+    </style>
+</head>
+<body>
+    <h1>Debug de Notificaciones</h1>
+    <div id="output"></div>
+
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
+
+        const supabaseUrl = prompt('Ingresa tu SUPABASE_URL:');
+        const supabaseKey = prompt('Ingresa tu SUPABASE_ANON_KEY:');
+
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        async function checkNotifications() {
+            const { data, error } = await supabase
+                .from('notifications')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(10);
+
+            if (error) {
+                document.getElementById('output').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                return;
+            }
+
+            let html = `<p>Total notificaciones: ${data.length}</p>`;
+
+            data.forEach(notification => {
+                const hasRequestId = notification.request_id ? 'has-request' : 'no-request';
+                html += `
+                    <div class="notification ${hasRequestId}">
+                        <h3>${notification.title}</h3>
+                        <p>${notification.message}</p>
+                        <p><strong>request_id:</strong> ${notification.request_id || 'NULL (no aparecerá el botón)'}</p>
+                        <p><strong>adset:</strong> ${notification.adset || 'NULL'}</p>
+                        <p><strong>created_at:</strong> ${new Date(notification.created_at).toLocaleString()}</p>
+                    </div>
+                `;
+            });
+
+            document.getElementById('output').innerHTML = html;
+        }
+
+        checkNotifications();
+    </script>
+</body>
+</html>
