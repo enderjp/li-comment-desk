@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 import { Loader2, LogIn, Mail } from 'lucide-react';
 
 export function LoginForm() {

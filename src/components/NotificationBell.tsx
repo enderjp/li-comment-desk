@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Bell, X, Check, MessageSquare, Eye, RefreshCw, FileText } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Bell, Check, MessageSquare, Eye, RefreshCw, FileText } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 import { Notification } from '../lib/database.types';
 
 interface NotificationBellProps {
@@ -14,48 +14,26 @@ export function NotificationBell({ onNavigateToRequest }: NotificationBellProps)
   const [showPanel, setShowPanel] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (!user) return;
-
-    fetchNotifications();
-
-    const channel = supabase
-      .channel('notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => {
-          fetchNotifications();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
-
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = (await supabase
         .from('notifications')
         .select('*')
         .eq('user_id', user.id)
         .eq('is_read', false)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })) as {
+        data: Notification[] | null;
+        error: Error | null;
+      };
 
       if (error) throw error;
 
+      const notificationsData = data ?? [];
       const validNotifications: Notification[] = [];
 
-      for (const notif of data || []) {
+      for (const notif of notificationsData) {
         let commentExists = true;
 
         if (notif.request_id) {
@@ -69,7 +47,7 @@ export function NotificationBell({ onNavigateToRequest }: NotificationBellProps)
         } else if (notif.adset?.includes('POST_ID:')) {
           const match = notif.adset.match(/POST_ID:(\d+)/);
           if (match) {
-            const postId = parseInt(match[1]);
+            const postId = parseInt(match[1], 10);
             const { data: comment } = await supabase
               .from('comments')
               .select('id')
@@ -95,7 +73,33 @@ export function NotificationBell({ onNavigateToRequest }: NotificationBellProps)
     } catch (err) {
       console.error('Error fetching notifications:', err);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    fetchNotifications();
+
+    const channel = supabase
+      .channel('notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          fetchNotifications();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchNotifications, user]);
 
   const markAsRead = async (notificationId: string) => {
     try {
@@ -218,12 +222,14 @@ export function NotificationBell({ onNavigateToRequest }: NotificationBellProps)
                                 } else if (notification.adset?.includes('POST_ID:')) {
                                   const match = notification.adset.match(/POST_ID:(\d+)/);
                                   if (match) {
-                                    const postId = parseInt(match[1]);
-                                    const { data: comment } = await supabase
+                                    const postId = parseInt(match[1], 10);
+                                    const { data: comment } = (await supabase
                                       .from('comments')
                                       .select('request_id')
                                       .eq('id', postId)
-                                      .maybeSingle();
+                                      .maybeSingle()) as {
+                                      data: { request_id: number } | null;
+                                    };
 
                                     if (comment) {
                                       requestId = comment.request_id.toString();

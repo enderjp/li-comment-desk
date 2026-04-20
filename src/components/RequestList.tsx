@@ -19,10 +19,13 @@ export function RequestList() {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase
+      const { data, error } = (await supabase
         .from('comments')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })) as {
+        data: Comment[] | null;
+        error: Error | null;
+      };
 
       if (error) throw error;
 

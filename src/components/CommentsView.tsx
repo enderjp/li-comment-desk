@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { Comment, GeminiComment, GptComment, ClaudeComment } from '../lib/database.types';
 import { MessageSquare, ExternalLink, Calendar, User, Tag, X, FileText, Search, Filter, Bot, Sparkles, ChevronDown, ChevronUp, Copy, Check, RefreshCw } from 'lucide-react';
 import { DateRangePicker } from './DateRangePicker';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 import { webhookUrls } from '../lib/webhooks';
 
 const PAGE_SIZE = 15;
@@ -77,14 +77,14 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
       setPendingPostIdSearch(postIdSearch);
       setLightPage(1);
     }
-  }, [lightMode]);
+  }, [adsetSearch, endDate, lightMode, postIdSearch, selectedAgent, selectedMediaBuyer, selectedVertical, startDate, urlSearch]);
 
   useEffect(() => {
     if (prefilterAdset) {
       setAdsetSearch(prefilterAdset);
       if (lightMode) setPendingAdsetSearch(prefilterAdset);
     }
-  }, [prefilterAdset]);
+  }, [lightMode, prefilterAdset]);
 
   useEffect(() => {
     console.log('🔄 useEffect ejecutándose - selectedRequestId:', selectedRequestId, 'comments.length:', comments.length, 'loading:', loading);
@@ -132,9 +132,69 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
     }
   }, [selectedRequestId, comments, loading, selectedComment]);
 
+  const fetchUserRole = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching user role:', error);
+        return;
+      }
+
+      setUserRole(data?.role ?? null);
+      console.log('User role loaded in CommentsView:', data?.role);
+    } catch (err) {
+      console.error('Error fetching user role:', err);
+    }
+  }, [user?.id]);
+
+  const fetchComments = useCallback(async (showLoader = false) => {
+    try {
+      if (showLoader) {
+        setLoading(true);
+      }
+      setError(null);
+
+      console.log('📥 Cargando comentarios con userRole:', userRole);
+
+      let query = supabase
+        .from('comments')
+        .select('*');
+
+      if (userRole === 'agent') {
+        console.log('⚠️ Usuario es agent - filtrando solo comentarios públicos');
+        query = query.eq('visibility', 'public');
+      }
+
+      const { data, error: fetchError } = (await query.order('created_at', { ascending: false })) as {
+        data: Comment[] | null;
+        error: Error | null;
+      };
+
+      if (fetchError) throw fetchError;
+
+      console.log('📊 Comentarios cargados:', data?.length || 0);
+      console.log('📋 Request IDs cargados:', data?.map(c => c.request_id).join(', '));
+
+      setComments((data ?? []) as Comment[]);
+      extractFilterOptions((data ?? []) as Comment[]);
+    } catch (err) {
+      console.error('Error fetching comments:', err);
+      setError(err instanceof Error ? err.message : 'Error al cargar los comentarios');
+    } finally {
+      setLoading(false);
+    }
+  }, [userRole]);
+
   useEffect(() => {
     fetchUserRole();
-  }, [user]);
+  }, [fetchUserRole]);
 
   useEffect(() => {
     if (userRole !== null) {
@@ -159,84 +219,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         supabase.removeChannel(channel);
       };
     }
-  }, [userRole]);
-
-  useEffect(() => {
-    if (!lightMode) {
-      applyFilters();
-      setCurrentPage(1);
-    }
-  }, [comments, selectedAgent, selectedMediaBuyer, selectedVertical, startDate, endDate, adsetSearch, urlSearch, postIdSearch, lightMode]);
-
-  useEffect(() => {
-    if (!lightMode) return;
-    const filtered = runFilter(
-      comments,
-      pendingAgent, pendingMediaBuyer, pendingVertical,
-      pendingStartDate, pendingEndDate,
-      pendingAdsetSearch, pendingUrlSearch, pendingPostIdSearch
-    );
-    setFilteredComments(filtered);
-    setLightPage(1);
-    setCurrentPage(1);
-  }, [lightMode, comments, pendingAgent, pendingMediaBuyer, pendingVertical, pendingStartDate, pendingEndDate, pendingAdsetSearch, pendingUrlSearch, pendingPostIdSearch]);
-
-  const fetchUserRole = async () => {
-    if (!user?.id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching user role:', error);
-        return;
-      }
-
-      setUserRole(data?.role || null);
-      console.log('User role loaded in CommentsView:', data?.role);
-    } catch (err) {
-      console.error('Error fetching user role:', err);
-    }
-  };
-
-  const fetchComments = async (showLoader = false) => {
-    try {
-      if (showLoader || comments.length === 0) {
-        setLoading(true);
-      }
-      setError(null);
-
-      console.log('📥 Cargando comentarios con userRole:', userRole);
-
-      let query = supabase
-        .from('comments')
-        .select('*');
-
-      if (userRole === 'agent') {
-        console.log('⚠️ Usuario es agent - filtrando solo comentarios públicos');
-        query = query.eq('visibility', 'public');
-      }
-
-      const { data, error: fetchError } = await query.order('created_at', { ascending: false });
-
-      if (fetchError) throw fetchError;
-
-      console.log('📊 Comentarios cargados:', data?.length || 0);
-      console.log('📋 Request IDs cargados:', data?.map(c => c.request_id).join(', '));
-
-      setComments(data || []);
-      extractFilterOptions(data || []);
-    } catch (err) {
-      console.error('Error fetching comments:', err);
-      setError(err instanceof Error ? err.message : 'Error al cargar los comentarios');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchComments, userRole]);
 
   const extractFilterOptions = (data: Comment[]) => {
     const uniqueAgents = [...new Set(data.map(c => c.agente_customer_service).filter(Boolean))] as string[];
@@ -274,7 +257,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
     return filtered;
   }, []);
 
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     const filtered = runFilter(
       comments,
       selectedAgent, selectedMediaBuyer, selectedVertical,
@@ -282,19 +265,17 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
       adsetSearch, urlSearch, postIdSearch
     );
     setFilteredComments(filtered);
-  };
+  }, [adsetSearch, comments, endDate, postIdSearch, runFilter, selectedAgent, selectedMediaBuyer, selectedVertical, startDate, urlSearch]);
 
-  const applyLightFilters = () => {
-    setSelectedAgent(pendingAgent);
-    setSelectedMediaBuyer(pendingMediaBuyer);
-    setSelectedVertical(pendingVertical);
-    setStartDate(pendingStartDate);
-    setEndDate(pendingEndDate);
-    setAdsetSearch(pendingAdsetSearch);
-    setUrlSearch(pendingUrlSearch);
-    setPostIdSearch(pendingPostIdSearch);
-    setLightPage(1);
-    setCurrentPage(1);
+  useEffect(() => {
+    if (!lightMode) {
+      applyFilters();
+      setCurrentPage(1);
+    }
+  }, [applyFilters, lightMode]);
+
+  useEffect(() => {
+    if (!lightMode) return;
     const filtered = runFilter(
       comments,
       pendingAgent, pendingMediaBuyer, pendingVertical,
@@ -302,7 +283,9 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
       pendingAdsetSearch, pendingUrlSearch, pendingPostIdSearch
     );
     setFilteredComments(filtered);
-  };
+    setLightPage(1);
+    setCurrentPage(1);
+  }, [comments, lightMode, pendingAdsetSearch, pendingAgent, pendingEndDate, pendingMediaBuyer, pendingPostIdSearch, pendingStartDate, pendingUrlSearch, pendingVertical, runFilter]);
 
   const clearFilters = () => {
     setSelectedAgent('');
@@ -365,9 +348,9 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
       if (gptResponse.error) throw gptResponse.error;
       if (claudeResponse.error) throw claudeResponse.error;
 
-      setGeminiComments(geminiResponse.data || []);
-      setGptComments(gptResponse.data || []);
-      setClaudeComments(claudeResponse.data || []);
+      setGeminiComments((geminiResponse.data ?? []) as GeminiComment[]);
+      setGptComments((gptResponse.data ?? []) as GptComment[]);
+      setClaudeComments((claudeResponse.data ?? []) as ClaudeComment[]);
     } catch (err) {
       console.error('Error fetching AI comments:', err);
     } finally {
@@ -608,16 +591,6 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
   }
 
   const hasActiveFilters = selectedAgent || selectedMediaBuyer || selectedVertical || startDate || endDate || adsetSearch || urlSearch || postIdSearch;
-  const hasPendingChanges = lightMode && (
-    pendingAgent !== selectedAgent ||
-    pendingMediaBuyer !== selectedMediaBuyer ||
-    pendingVertical !== selectedVertical ||
-    pendingStartDate !== startDate ||
-    pendingEndDate !== endDate ||
-    pendingAdsetSearch !== adsetSearch ||
-    pendingUrlSearch !== urlSearch ||
-    pendingPostIdSearch !== postIdSearch
-  );
   const totalPages = Math.ceil(filteredComments.length / PAGE_SIZE);
   const activePage = lightMode ? lightPage : currentPage;
   const pagedComments = filteredComments.slice((activePage - 1) * PAGE_SIZE, activePage * PAGE_SIZE);

@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Loader2, Send, AlertCircle, CheckCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 import { webhookUrls } from '../lib/webhooks';
 
 interface FormData {
@@ -46,7 +46,6 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
   const [loading, setLoading] = useState(false);
   const [showProcessingModal, setShowProcessingModal] = useState(false);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
-  const [responseCode, setResponseCode] = useState<string | null>(null);
   const [currentAdset, setCurrentAdset] = useState<string>('');
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loadingAgents, setLoadingAgents] = useState(true);
@@ -60,14 +59,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
   const [urlError, setUrlError] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchAgents();
-    fetchMediaBuyers();
-    fetchVerticals();
-    fetchUserRole();
-  }, [user]);
-
-  async function fetchAgents() {
+  const fetchAgents = useCallback(async () => {
     try {
       setLoadingAgents(true);
       setAgentsError(null);
@@ -91,9 +83,9 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
     } finally {
       setLoadingAgents(false);
     }
-  }
+  }, []);
 
-  async function fetchMediaBuyers() {
+  const fetchMediaBuyers = useCallback(async () => {
     try {
       setLoadingMediaBuyers(true);
       setMediaBuyersError(null);
@@ -117,9 +109,9 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
     } finally {
       setLoadingMediaBuyers(false);
     }
-  }
+  }, []);
 
-  async function fetchVerticals() {
+  const fetchVerticals = useCallback(async () => {
     try {
       setLoadingVerticals(true);
       setVerticalsError(null);
@@ -143,9 +135,9 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
     } finally {
       setLoadingVerticals(false);
     }
-  }
+  }, []);
 
-  async function fetchUserRole() {
+  const fetchUserRole = useCallback(async () => {
     if (!user?.id) return;
 
     try {
@@ -160,12 +152,19 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
         return;
       }
 
-      setUserRole(data?.role || null);
+      setUserRole(data?.role ?? null);
       console.log('User role loaded:', data?.role);
     } catch (err) {
       console.error('Error fetching user role:', err);
     }
-  }
+  }, [user?.id]);
+
+  useEffect(() => {
+    fetchAgents();
+    fetchMediaBuyers();
+    fetchVerticals();
+    fetchUserRole();
+  }, [fetchAgents, fetchMediaBuyers, fetchUserRole, fetchVerticals]);
 
   const validateUrls = (urlsText: string): { valid: boolean; error?: string } => {
     const urls = urlsText.split('\n').map(url => url.trim()).filter(url => url.length > 0);
@@ -243,7 +242,6 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
 
       const code = String(result.code || result.status);
       console.log('Code received:', code, 'Type:', typeof code);
-      setResponseCode(code);
       setCurrentAdset(formData.adset);
 
       if (code === '409') {
@@ -266,7 +264,6 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
     } catch (error) {
       console.error('Error submitting form:', error);
       setShowProcessingModal(false);
-      setResponseCode(null);
 
       let errorMessage = 'Error al enviar el formulario. ';
 
