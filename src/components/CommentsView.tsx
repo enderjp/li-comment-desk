@@ -46,6 +46,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
   const [selectedAgent, setSelectedAgent] = useState<string>('');
   const [selectedMediaBuyer, setSelectedMediaBuyer] = useState<string>('');
   const [selectedVertical, setSelectedVertical] = useState<string>('');
+  const [selectedMediaType, setSelectedMediaType] = useState('all');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [adsetSearch, setAdsetSearch] = useState<string>('');
@@ -233,7 +234,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
   const runFilter = useCallback((
     data: Comment[],
-    agent: string, mediaBuyer: string, vertical: string,
+    agent: string, mediaBuyer: string, vertical: string, mediaType: string,
     sDate: string, eDate: string,
     adset: string, url: string, postId: string
   ) => {
@@ -241,6 +242,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
     if (agent) filtered = filtered.filter(c => c.agente_customer_service === agent);
     if (mediaBuyer) filtered = filtered.filter(c => c.media_buyer === mediaBuyer);
     if (vertical) filtered = filtered.filter(c => c.vertical === vertical);
+    if (mediaType !== 'all') filtered = filtered.filter(c => c.media_type === mediaType);
     if (sDate) {
       const start = new Date(sDate);
       start.setHours(0, 0, 0, 0);
@@ -260,7 +262,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
   const applyFilters = useCallback(() => {
     const filtered = runFilter(
       comments,
-      selectedAgent, selectedMediaBuyer, selectedVertical,
+      selectedAgent, selectedMediaBuyer, selectedVertical, selectedMediaType,
       startDate, endDate,
       adsetSearch, urlSearch, postIdSearch
     );
@@ -278,7 +280,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
     if (!lightMode) return;
     const filtered = runFilter(
       comments,
-      pendingAgent, pendingMediaBuyer, pendingVertical,
+      pendingAgent, pendingMediaBuyer, pendingVertical, selectedMediaType,
       pendingStartDate, pendingEndDate,
       pendingAdsetSearch, pendingUrlSearch, pendingPostIdSearch
     );
@@ -689,7 +691,20 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
               ))}
             </select>
           </div>
-
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tipo de Medio
+            </label>
+            <select
+              value={selectedMediaType}
+              onChange={(e) => setSelectedMediaType(e.target.value)}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            >
+              <option value="all">Todos los tipos</option>
+              <option value="image">Imagen</option>
+              <option value="video">Video</option>
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Rango de fechas
@@ -1634,5 +1649,3 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
   );
 }
 
-
-// PROBANDO SI FUNCIONA EL GIT HUB DESDE LA TERMINAL
