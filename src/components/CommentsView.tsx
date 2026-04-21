@@ -267,14 +267,14 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
       adsetSearch, urlSearch, postIdSearch
     );
     setFilteredComments(filtered);
-  }, [adsetSearch, comments, endDate, postIdSearch, runFilter, selectedAgent, selectedMediaBuyer, selectedVertical, startDate, urlSearch]);
+  }, [adsetSearch, comments, endDate, postIdSearch, runFilter, selectedAgent, selectedMediaBuyer, selectedVertical, selectedVertical, startDate, urlSearch]);
 
   useEffect(() => {
     if (!lightMode) {
       applyFilters();
       setCurrentPage(1);
     }
-  }, [applyFilters, lightMode]);
+  }, [applyFilters, lightMode, selectedMediaType]);
 
   useEffect(() => {
     if (!lightMode) return;
