@@ -242,7 +242,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
     if (agent) filtered = filtered.filter(c => c.agente_customer_service === agent);
     if (mediaBuyer) filtered = filtered.filter(c => c.media_buyer === mediaBuyer);
     if (vertical) filtered = filtered.filter(c => c.vertical === vertical);
-    if (mediaType !== 'all') filtered = filtered.filter(c => c.mediaType === mediaType);
+    if (mediaType !== 'all') filtered = filtered.filter(c => c.media_type === mediaType);
     if (sDate) {
       const start = new Date(sDate);
       start.setHours(0, 0, 0, 0);
@@ -267,7 +267,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
       adsetSearch, urlSearch, postIdSearch
     );
     setFilteredComments(filtered);
-  }, [adsetSearch, comments, endDate, postIdSearch, runFilter, selectedAgent, selectedMediaBuyer, selectedVertical, selectedVertical, startDate, urlSearch]);
+  }, [adsetSearch, comments, endDate, postIdSearch, runFilter, selectedAgent, selectedMediaBuyer, selectedMediaType, selectedVertical, startDate, urlSearch]);
 
   useEffect(() => {
     if (!lightMode) {
@@ -287,7 +287,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
     setFilteredComments(filtered);
     setLightPage(1);
     setCurrentPage(1);
-  }, [comments, lightMode, pendingAdsetSearch, pendingAgent, pendingEndDate, pendingMediaBuyer, pendingPostIdSearch, pendingStartDate, pendingUrlSearch, pendingVertical, runFilter]);
+  }, [comments, lightMode, pendingAdsetSearch, pendingAgent, pendingEndDate, pendingMediaBuyer, selectedMediaType, pendingPostIdSearch, pendingStartDate, pendingUrlSearch, pendingVertical, runFilter]);
 
   const clearFilters = () => {
     setSelectedAgent('');
@@ -534,7 +534,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         userId: user?.id || '',
         visibility: selectedComment.visibility || 'private',
         PostId: selectedComment.id,
-        mediaType: selectedComment.mediaType || 'video'
+        mediaType: selectedComment.media_type || 'video'
       };
 
       const response = await fetch(webhookUrls.regenerateScript, {
