@@ -242,7 +242,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
     if (agent) filtered = filtered.filter(c => c.agente_customer_service === agent);
     if (mediaBuyer) filtered = filtered.filter(c => c.media_buyer === mediaBuyer);
     if (vertical) filtered = filtered.filter(c => c.vertical === vertical);
-    if (mediaType !== 'all') filtered = filtered.filter(c => c.media_type === mediaType);
+    if (mediaType !== 'all') filtered = filtered.filter(c => c.mediaType === mediaType);
     if (sDate) {
       const start = new Date(sDate);
       start.setHours(0, 0, 0, 0);
@@ -693,7 +693,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tipo de Medio
+              Tipo de Post
             </label>
             <select
               value={selectedMediaType}
