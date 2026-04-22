@@ -77,7 +77,7 @@ export interface Database {
           script_updated_at: string | null
           thumbnail_urls: string[] | string | null
           visibility: string | null
-          mediaType: string | null
+          media_type: string | null
         }
         Insert: {
           id?: number
@@ -94,7 +94,7 @@ export interface Database {
           script_updated_at?: string | null
           thumbnail_urls?: string[] | string | null
           visibility?: string | null
-          mediaType?: string | null
+          media_type?: string | null
         }
         Update: {
           id?: number
@@ -111,7 +111,7 @@ export interface Database {
           script_updated_at?: string | null
           thumbnail_urls?: string[] | string | null
           visibility?: string | null
-          mediaType?: string | null
+          media_type?: string | null
         }
         Relationships: []
       }
