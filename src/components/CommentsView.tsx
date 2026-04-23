@@ -731,7 +731,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
           <Filter className={`w-5 h-5 ${lightMode ? 'text-accent' : 'text-gray-600'}`} />
           <h3 className="text-lg font-semibold text-gray-900">Filtros</h3>
           {lightMode && (
-            <span className="ml-auto text-xs font-medium bg-accent-soft-border px-2 py-0.5 rounded-full">
+            <span className="ml-auto text-xs text-accent font-medium px-2 py-0.5 rounded-full">
               Modo Ligero — filtros en tiempo real
             </span>
           )}

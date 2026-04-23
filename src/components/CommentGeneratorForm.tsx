@@ -442,7 +442,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                   onClick={() => setMediaType('image')}
                   className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all border-2 ${
                     mediaType === 'image'
-                      ? 'bg-accent-soft-border text-accent border-accent/30 shadow-sm'
+                      ? 'bg-primary-soft text-primary border-primary/30 shadow-sm'
                       : 'bg-[#F8F4E7] text-[#294038] border-[#E6D5AC] hover:bg-[#E8D9B5] hover:border-[#D4AE5D]'
                   }`}
                 >
