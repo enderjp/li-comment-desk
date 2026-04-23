@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  /* Cambia estos valores para modificar la paleta global */
+  --color-primary: 41 64 56; /* #294038 */
+  --color-primary-hover: 81 114 103; /* #517267 */
+  --color-primary-soft: 81 114 103; /* #517267 */
+
+  --color-accent: 212 174 93; /* #D4AE5D */
+  --color-accent-hover: 242 211 154; /* #F2D39A */
+  --color-accent-soft: 242 211 154; /* #F2D39A */
+  --color-accent-soft-border: 212 174 93; /* #D4AE5D */
+}

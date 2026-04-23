@@ -14,7 +14,7 @@ export function RequestCard({ comment, onClick }: RequestCardProps) {
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Tag className="w-5 h-5 text-blue-600" />
+          <Tag className="w-5 h-5 text-primary" />
           <span className="text-sm font-medium text-gray-500">
             {comment.vertical || 'No vertical'}
           </span>
@@ -56,7 +56,7 @@ export function RequestCard({ comment, onClick }: RequestCardProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="text-sm text-blue-600 hover:text-blue-800 hover:underline truncate block"
+                className="text-sm text-primary hover:text-primary-hover hover:underline truncate block"
               >
                 {comment.url}
               </a>
@@ -77,11 +77,11 @@ export function RequestCard({ comment, onClick }: RequestCardProps) {
         )}
 
         {comment.Comentarios && (
-          <div className="flex items-start gap-3 bg-amber-50 -mx-6 -mb-6 mt-4 p-4 rounded-b-lg border-t border-amber-100">
-            <MessageSquare className="w-4 h-4 text-amber-600 mt-1 flex-shrink-0" />
+          <div className="flex items-start gap-3 bg-accent-soft -mx-6 -mb-6 mt-4 p-4 rounded-b-lg border-t border-accent-soft-border">
+            <MessageSquare className="w-4 h-4 text-accent mt-1 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-amber-800 mb-1">Comentarios</p>
-              <p className="text-sm text-amber-900">
+              <p className="text-xs font-medium text-gray-800 mb-1">Comentarios</p>
+              <p className="text-sm text-gray-900">
                 {comment.Comentarios}
               </p>
             </div>

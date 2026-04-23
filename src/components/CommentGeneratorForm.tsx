@@ -283,17 +283,17 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#D4AE5D]/30 p-8">
+        <h2 className="text-2xl font-bold text-primary mb-2">
           Generador de comentarios para Social Media posts
         </h2>
-        <p className="text-gray-500 mb-8">
+        <p className="text-[#517267] mb-8">
           Complete el formulario para generar comentarios personalizados
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="agentCS" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="agentCS" className="block text-sm font-medium text-primary mb-2">
               Agente CS
             </label>
             {agentsError ? (
@@ -309,7 +309,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                   onChange={(e) => setFormData({ ...formData, agentCS: e.target.value })}
                   required
                   disabled={loadingAgents}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-2.5 border border-[#D4AE5D]/40 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-[#fffdf7] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="">
                     {loadingAgents ? 'Cargando agentes...' : 'Seleccionar agente...'}
@@ -321,7 +321,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                   ))}
                 </select>
                 {!loadingAgents && agents.length === 0 && !agentsError && (
-                  <p className="text-xs text-amber-600 mt-1">
+                  <p className="text-xs text-accent mt-1">
                     No hay agentes disponibles en la base de datos
                   </p>
                 )}
@@ -330,7 +330,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
           </div>
 
           <div>
-            <label htmlFor="mediaBuyer" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="mediaBuyer" className="block text-sm font-medium text-primary mb-2">
               Media Buyer
             </label>
             {mediaBuyersError ? (
@@ -346,7 +346,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                   onChange={(e) => setFormData({ ...formData, mediaBuyer: e.target.value })}
                   required
                   disabled={loadingMediaBuyers}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-2.5 border border-[#D4AE5D]/40 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-[#fffdf7] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="">
                     {loadingMediaBuyers ? 'Cargando media buyers...' : 'Seleccionar media buyer...'}
@@ -358,7 +358,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                   ))}
                 </select>
                 {!loadingMediaBuyers && mediaBuyers.length === 0 && !mediaBuyersError && (
-                  <p className="text-xs text-amber-600 mt-1">
+                  <p className="text-xs text-accent mt-1">
                     No hay media buyers disponibles en la base de datos
                   </p>
                 )}
@@ -367,7 +367,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
           </div>
 
           <div>
-            <label htmlFor="vertical" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="vertical" className="block text-sm font-medium text-primary mb-2">
               Vertical
             </label>
             {verticalsError ? (
@@ -383,7 +383,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                   onChange={(e) => setFormData({ ...formData, vertical: e.target.value })}
                   required
                   disabled={loadingVerticals}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-2.5 border border-[#D4AE5D]/40 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-[#fffdf7] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="">
                     {loadingVerticals ? 'Cargando verticals...' : 'Seleccionar vertical...'}
@@ -395,7 +395,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                   ))}
                 </select>
                 {!loadingVerticals && verticals.length === 0 && !verticalsError && (
-                  <p className="text-xs text-amber-600 mt-1">
+                  <p className="text-xs text-accent mt-1">
                     No hay verticals disponibles en la base de datos
                   </p>
                 )}
@@ -404,7 +404,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
           </div>
 
           <div>
-            <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="language" className="block text-sm font-medium text-primary mb-2">
               Idioma
             </label>
             <select
@@ -412,7 +412,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
               value={formData.language}
               onChange={(e) => setFormData({ ...formData, language: e.target.value })}
               required
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="w-full px-4 py-2.5 border border-[#D4AE5D]/40 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-[#fffdf7]"
             >
               <option value="">Seleccionar idioma...</option>
               <option value="Inglés">Inglés</option>
@@ -422,7 +422,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label htmlFor="adset" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="adset" className="block text-sm font-medium text-primary">
                 {mediaType === 'video' ? 'Video' : 'Imagen'}
               </label>
               <div className="flex items-center gap-2">
@@ -431,8 +431,8 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                   onClick={() => setMediaType('video')}
                   className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all border-2 ${
                     mediaType === 'video'
-                      ? 'bg-sky-100 text-sky-700 border-sky-300 shadow-sm'
-                      : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
+                      ? 'bg-primary-soft text-primary border-primary/30 shadow-sm'
+                      : 'bg-[#F8F4E7] text-[#294038] border-[#E6D5AC] hover:bg-[#E8D9B5] hover:border-[#D4AE5D]'
                   }`}
                 >
                   Video
@@ -442,8 +442,8 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                   onClick={() => setMediaType('image')}
                   className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all border-2 ${
                     mediaType === 'image'
-                      ? 'bg-amber-100 text-amber-700 border-amber-300 shadow-sm'
-                      : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
+                      ? 'bg-accent-soft-border text-accent border-accent/30 shadow-sm'
+                      : 'bg-[#F8F4E7] text-[#294038] border-[#E6D5AC] hover:bg-[#E8D9B5] hover:border-[#D4AE5D]'
                   }`}
                 >
                   Imagen
@@ -456,12 +456,12 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
               value={formData.adset}
               onChange={(e) => setFormData({ ...formData, adset: e.target.value })}
               placeholder={mediaType === 'video' ? 'Ingrese el nombre del video' : 'Ingrese el nombre del post/imagen'}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-[#D4AE5D]/40 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
             />
           </div>
 
           <div>
-            <label htmlFor="urls" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="urls" className="block text-sm font-medium text-primary mb-2">
               URLs
             </label>
             <textarea
@@ -474,8 +474,8 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
               required
               rows={6}
               placeholder="Pegue las URLs aquí, una por línea&#10;https://example.com/post1&#10;https://example.com/post2&#10;https://example.com/post3"
-              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm ${
-                urlError ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none font-mono text-sm ${
+                urlError ? 'border-red-300 bg-red-50' : 'border-[#D4AE5D]/40'
               }`}
             />
             {urlError ? (
@@ -484,7 +484,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                 <span>{urlError}</span>
               </div>
             ) : (
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-[#517267] mt-1">
                 Ingrese una URL por línea. Cada URL debe comenzar con http:// o https://
               </p>
             )}
@@ -493,7 +493,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
+            className="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
           >
             {loading ? (
               <>
@@ -512,20 +512,20 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
 
       {showProcessingModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+          <div className="bg-[#f8f4e7] rounded-xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
             <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
-                <CheckCircle className="h-8 w-8 text-green-600" />
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-[#D4AE5D]/20 mb-4">
+                <CheckCircle className="h-8 w-8 text-[#294038]" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold text-primary mb-2">
                 Procesando videos
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-[#517267] mb-6">
                 Los videos están siendo procesados, por favor espere unos minutos mientras se generan los comentarios
               </p>
               <button
                 onClick={() => setShowProcessingModal(false)}
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary-hover transition-colors font-medium"
               >
                 Listo
               </button>
@@ -536,16 +536,16 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
 
       {showDuplicateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+          <div className="bg-[#f8f4e7] rounded-xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
             <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 mb-4">
-                <AlertCircle className="h-8 w-8 text-amber-600" />
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-[#D4AE5D]/20 mb-4">
+                <AlertCircle className="h-8 w-8 text-[#294038]" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold text-primary mb-2">
                 Adset duplicado
               </h3>
-              <p className="text-gray-600 mb-6">
-                Este adset <span className="font-semibold">"{currentAdset}"</span> ya tiene comentarios generados en la base de datos.
+              <p className="text-[#517267] mb-6">
+                Este adset <span className="font-semibold text-primary">"{currentAdset}"</span> ya tiene comentarios generados en la base de datos.
               </p>
               <div className="flex gap-3">
                 <button
@@ -553,13 +553,13 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                     setShowDuplicateModal(false);
                     onNavigateToComments(currentAdset);
                   }}
-                  className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  className="flex-1 bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary-hover transition-colors font-medium"
                 >
                   Ver comentarios
                 </button>
                 <button
                   onClick={() => setShowDuplicateModal(false)}
-                  className="flex-1 bg-gray-200 text-gray-800 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                  className="flex-1 bg-[#D9D9D9] text-[#294038] py-3 px-4 rounded-lg hover:bg-[#bfbfbf] transition-colors font-medium"
                 >
                   Salir
                 </button>

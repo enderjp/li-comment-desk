@@ -9,6 +9,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Development mode: bypass authentication for local testing
+    if (import.meta.env.DEV && localStorage.getItem('DEV_MODE') === 'true') {
+      const mockUser: User = {
+        id: 'dev-user-123',
+        aud: 'authenticated',
+        role: 'authenticated',
+        email: 'dev@example.com',
+        email_confirmed_at: new Date().toISOString(),
+        phone: '',
+        phone_confirmed_at: null,
+        confirmed_at: new Date().toISOString(),
+        last_sign_in_at: new Date().toISOString(),
+        app_metadata: {},
+        user_metadata: { full_name: 'Developer' },
+        identities: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_anonymous: false,
+      };
+      setUser(mockUser);
+      setLoading(false);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);

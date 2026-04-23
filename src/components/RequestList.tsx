@@ -40,7 +40,7 @@ export function RequestList() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -92,7 +92,7 @@ export function RequestList() {
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between pb-4 border-b border-gray-200">
                 <div className="flex items-center gap-3">
-                  <Tag className="w-6 h-6 text-blue-600" />
+                  <Tag className="w-6 h-6 text-primary" />
                   <div>
                     <p className="text-xs text-gray-500">Vertical</p>
                     <p className="text-lg font-semibold text-gray-900">
@@ -143,18 +143,18 @@ export function RequestList() {
               </div>
 
               {selectedComment.url && (
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                <div className="bg-primary-soft rounded-lg p-4 border border-primary-soft">
                   <div className="flex items-start gap-3">
-                    <ExternalLink className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" />
+                    <ExternalLink className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-blue-900 uppercase tracking-wide mb-2">
+                      <p className="text-xs font-medium text-gray-900 uppercase tracking-wide mb-2">
                         URL
                       </p>
                       <a
                         href={selectedComment.url.startsWith('http') ? selectedComment.url : `https://${selectedComment.url}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-base text-blue-600 hover:text-blue-800 hover:underline break-all"
+                        className="text-base text-primary hover:text-primary-hover hover:underline break-all"
                       >
                         {selectedComment.url}
                       </a>
@@ -180,14 +180,14 @@ export function RequestList() {
               )}
 
               {selectedComment.Comentarios && (
-                <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-5 border border-amber-200">
+                <div className="bg-gradient-to-br from-accent-soft to-accent-soft-border rounded-lg p-5 border border-accent-soft-border">
                   <div className="flex items-start gap-3">
-                    <MessageSquare className="w-5 h-5 text-amber-700 mt-1 flex-shrink-0" />
+                    <MessageSquare className="w-5 h-5 text-accent mt-1 flex-shrink-0" />
                     <div className="flex-1">
-                      <p className="text-xs font-medium text-amber-900 uppercase tracking-wide mb-3">
+                      <p className="text-xs font-medium text-gray-900 uppercase tracking-wide mb-3">
                         Comentarios Generados
                       </p>
-                      <p className="text-base text-amber-900 leading-relaxed whitespace-pre-wrap">
+                      <p className="text-base text-gray-900 leading-relaxed whitespace-pre-wrap">
                         {selectedComment.Comentarios}
                       </p>
                     </div>
@@ -199,7 +199,7 @@ export function RequestList() {
             <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-xl">
               <button
                 onClick={() => setSelectedComment(null)}
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary-hover transition-colors font-medium"
               >
                 Cerrar
               </button>

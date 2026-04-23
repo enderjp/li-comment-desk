@@ -167,7 +167,7 @@ export function NotificationBell({ onNavigateToRequest }: NotificationBellProps)
                 <button
                   onClick={markAllAsRead}
                   disabled={loading}
-                  className="text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50"
+                  className="text-sm text-primary hover:text-primary-hover font-medium disabled:opacity-50"
                 >
                   {loading ? 'Marcando...' : 'Marcar todas como leídas'}
                 </button>
@@ -193,9 +193,9 @@ export function NotificationBell({ onNavigateToRequest }: NotificationBellProps)
                             {notification.title === 'Script actualizado' ? (
                               <FileText className="w-4 h-4 text-green-600 flex-shrink-0" />
                             ) : notification.title === 'Comentarios actualizados' ? (
-                              <RefreshCw className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                              <RefreshCw className="w-4 h-4 text-primary flex-shrink-0" />
                             ) : (
-                              <MessageSquare className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                              <MessageSquare className="w-4 h-4 text-primary flex-shrink-0" />
                             )}
                             <h4 className="font-semibold text-gray-900 text-sm">
                               {notification.title}
@@ -245,7 +245,7 @@ export function NotificationBell({ onNavigateToRequest }: NotificationBellProps)
                                   console.error('❌ No se pudo obtener el request_id');
                                 }
                               }}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-xs font-medium rounded-md hover:bg-primary-hover transition-colors"
                             >
                               <Eye className="w-3.5 h-3.5" />
                               Ver post
