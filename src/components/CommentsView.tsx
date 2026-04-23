@@ -713,7 +713,8 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
             {totalPages > 1 && ` — Página ${activePage} de ${totalPages}`}
           </p>
         </div>
-        <button
+        {/* <button className="bg-accent text-white">
+        </button><button
           onClick={() => setDemoMode(!demoMode)}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
             demoMode
@@ -723,7 +724,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
           title={demoMode ? 'Desactivar modo demo' : 'Activar modo demo (datos de ejemplo)'}
         >
           {demoMode ? '✓ Modo Demo Activo' : 'Activar Modo Demo'}
-        </button>
+        </button> */}
       </div>
 
       <div className={`bg-white rounded-xl shadow-sm border p-6 mb-8 ${lightMode ? 'border-accent-soft-border bg-accent-soft/30' : 'border-gray-200'}`}>
