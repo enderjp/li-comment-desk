@@ -949,6 +949,14 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                         </div>
                       )}
 
+                      {comment.media_type && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Tag className="w-4 h-4 text-gray-400" />
+                          <span className="text-gray-600">Tipo de post:</span>
+                          <span className="font-medium text-gray-900 capitalize">{comment.media_type}</span>
+                        </div>
+                      )}
+
                       {comment.adset && (
                         <div className="flex items-center gap-2 text-sm">
                           <Tag className="w-4 h-4 text-gray-400" />
@@ -1145,15 +1153,28 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
                   {selectedComment.language && (
                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                      <div className="flex items-start gap-3">
-                        <Tag className="w-5 h-5 text-gray-600 mt-1 flex-shrink-0" />
-                        <div className="flex-1">
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-                            Idioma
-                          </p>
-                          <p className="text-base font-medium text-gray-900">
-                            {selectedComment.language}
-                          </p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex items-start gap-3">
+                          <Tag className="w-5 h-5 text-gray-600 mt-1 flex-shrink-0" />
+                          <div className="flex-1">
+                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                              Idioma
+                            </p>
+                            <p className="text-base font-medium text-gray-900">
+                              {selectedComment.language}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <Tag className="w-5 h-5 text-gray-600 mt-1 flex-shrink-0" />
+                          <div className="flex-1">
+                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                              Tipo de post
+                            </p>
+                            <p className="text-base font-medium text-gray-900 capitalize">
+                              {selectedComment.media_type || 'N/A'}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
