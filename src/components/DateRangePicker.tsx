@@ -111,7 +111,7 @@ export function DateRangePicker({ startDate, endDate, onStartDateChange, onEndDa
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white flex items-center justify-between hover:bg-gray-50 transition-colors"
+        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white flex items-center justify-between hover:bg-gray-50 transition-colors"
       >
         <div className="flex items-center gap-2">
           <Calendar className="w-5 h-5 text-gray-500" />
@@ -129,49 +129,49 @@ export function DateRangePicker({ startDate, endDate, onStartDateChange, onEndDa
               <button
                 type="button"
                 onClick={setToday}
-                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-lg transition-colors"
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-primary-soft rounded-lg transition-colors"
               >
                 Hoy
               </button>
               <button
                 type="button"
                 onClick={setYesterday}
-                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-lg transition-colors"
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-primary-soft rounded-lg transition-colors"
               >
                 Ayer
               </button>
               <button
                 type="button"
                 onClick={setLast2Days}
-                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-lg transition-colors"
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-primary-soft rounded-lg transition-colors"
               >
                 Últimos 2 días
               </button>
               <button
                 type="button"
                 onClick={setThisWeek}
-                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-lg transition-colors"
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-primary-soft rounded-lg transition-colors"
               >
                 Esta semana
               </button>
               <button
                 type="button"
                 onClick={setLast7Days}
-                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-lg transition-colors"
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-primary-soft rounded-lg transition-colors"
               >
                 Últimos 7 días
               </button>
               <button
                 type="button"
                 onClick={setThisMonth}
-                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-lg transition-colors"
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-primary-soft rounded-lg transition-colors"
               >
                 Este mes
               </button>
               <button
                 type="button"
                 onClick={setLast30Days}
-                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-lg transition-colors"
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-primary-soft rounded-lg transition-colors"
               >
                 Últimos 30 días
               </button>
@@ -191,7 +191,7 @@ export function DateRangePicker({ startDate, endDate, onStartDateChange, onEndDa
                     type="date"
                     value={startDate}
                     onChange={(e) => onStartDateChange(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -202,7 +202,7 @@ export function DateRangePicker({ startDate, endDate, onStartDateChange, onEndDa
                     type="date"
                     value={endDate}
                     onChange={(e) => onEndDateChange(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
               </div>
@@ -210,7 +210,7 @@ export function DateRangePicker({ startDate, endDate, onStartDateChange, onEndDa
               <button
                 type="button"
                 onClick={applyCustomDates}
-                className="w-full mt-4 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                className="w-full mt-4 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover transition-colors"
               >
                 Aplicar
               </button>

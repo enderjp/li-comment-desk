@@ -46,6 +46,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
   const [selectedAgent, setSelectedAgent] = useState<string>('');
   const [selectedMediaBuyer, setSelectedMediaBuyer] = useState<string>('');
   const [selectedVertical, setSelectedVertical] = useState<string>('');
+  const [selectedMediaType, setSelectedMediaType] = useState('all');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [adsetSearch, setAdsetSearch] = useState<string>('');
@@ -62,7 +63,73 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
   const [pendingAdsetSearch, setPendingAdsetSearch] = useState<string>('');
   const [pendingUrlSearch, setPendingUrlSearch] = useState<string>('');
   const [pendingPostIdSearch, setPendingPostIdSearch] = useState<string>('');
+  const [demoMode, setDemoMode] = useState(false);
   const prevLightMode = useRef(lightMode);
+
+  // Datos de ejemplo para modo demo
+  const mockCommentData: Comment = {
+    id: '1',
+    request_id: 1,
+    agente_customer_service: 'Juan Pérez',
+    media_buyer: 'Carlos López',
+    vertical: 'Health & Wellness',
+    language: 'Español',
+    adset: 'VideoDemo_HealthProduct_001',
+    url: 'https://facebook.com/post/123456789',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    script: 'Este es un script de ejemplo para demostración. El usuario puede ver cómo se vería el contenido sin necesidad de tener datos en la base de datos. Este script contiene información sobre el producto que se está promocionando y puede ser usado como base para los comentarios que se generarán.',
+    Comentarios: '¡Excelente producto! Me encanta. ¡Recomendado! Acabo de comprarlo y llegó rápido.',
+    thumbnail_urls: 'https://via.placeholder.com/400x300?text=Product+Demo',
+    visibility: 'public' as const,
+    media_type: 'video' as const,
+    script_updated_at: new Date().toISOString(),
+  };
+
+  const mockGeminiComments: GeminiComment[] = [
+    {
+      id: '1',
+      request_id: 1,
+      comment_content: 'Increíble este producto, exactamente lo que estaba buscando. Muy buena calidad y rápida entrega.',
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: '2',
+      request_id: 1,
+      comment_content: '¡WOW! No puedo creer el cambio en mi vida. Recomiendo ampliamente a todos mis amigos.',
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: '3',
+      request_id: 1,
+      comment_content: 'Mejor inversión que he hecho este año. El servicio al cliente fue excelente.',
+      created_at: new Date().toISOString(),
+    },
+  ];
+
+  const mockGptComments: GptComment[] = [
+    {
+      id: '1',
+      request_id: 1,
+      comment_content: 'Acabo de probar esto y estoy sorprendido de lo bien que funciona. Totalmente vale la pena.',
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: '2',
+      request_id: 1,
+      comment_content: 'He estado usando este producto durante una semana y puedo notar la diferencia. Muy satisfecho.',
+      created_at: new Date().toISOString(),
+    },
+  ];
+
+  const mockClaudeComments: ClaudeComment[] = [
+    {
+      id: '1',
+      request_id: 1,
+      comment_content: 'Simplemente perfecto. Llegó en perfecto estado y funciona maravillosamente. Los vendedores fueron muy atentos.',
+      created_at: new Date().toISOString(),
+    },
+  ];
 
   useEffect(() => {
     if (prevLightMode.current !== lightMode) {
@@ -197,7 +264,17 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
   }, [fetchUserRole]);
 
   useEffect(() => {
-    if (userRole !== null) {
+    if (demoMode) {
+      // Cargar datos de ejemplo en modo demo
+      setLoading(true);
+      setTimeout(() => {
+        setComments([mockCommentData]);
+        setFilteredComments([mockCommentData]); // ← Importante: También cargar los comentarios filtrados
+        extractFilterOptions([mockCommentData]);
+        setLoading(false);
+      }, 300);
+    } else if (userRole !== null) {
+      // Cargar desde Supabase
       fetchComments();
 
       const channel = supabase
@@ -219,7 +296,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         supabase.removeChannel(channel);
       };
     }
-  }, [fetchComments, userRole]);
+  }, [fetchComments, userRole, demoMode]);
 
   const extractFilterOptions = (data: Comment[]) => {
     const uniqueAgents = [...new Set(data.map(c => c.agente_customer_service).filter(Boolean))] as string[];
@@ -233,7 +310,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
   const runFilter = useCallback((
     data: Comment[],
-    agent: string, mediaBuyer: string, vertical: string,
+    agent: string, mediaBuyer: string, vertical: string, mediaType: string,
     sDate: string, eDate: string,
     adset: string, url: string, postId: string
   ) => {
@@ -241,6 +318,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
     if (agent) filtered = filtered.filter(c => c.agente_customer_service === agent);
     if (mediaBuyer) filtered = filtered.filter(c => c.media_buyer === mediaBuyer);
     if (vertical) filtered = filtered.filter(c => c.vertical === vertical);
+    if (mediaType !== 'all') filtered = filtered.filter(c => c.media_type === mediaType);
     if (sDate) {
       const start = new Date(sDate);
       start.setHours(0, 0, 0, 0);
@@ -260,32 +338,32 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
   const applyFilters = useCallback(() => {
     const filtered = runFilter(
       comments,
-      selectedAgent, selectedMediaBuyer, selectedVertical,
+      selectedAgent, selectedMediaBuyer, selectedVertical, selectedMediaType,
       startDate, endDate,
       adsetSearch, urlSearch, postIdSearch
     );
     setFilteredComments(filtered);
-  }, [adsetSearch, comments, endDate, postIdSearch, runFilter, selectedAgent, selectedMediaBuyer, selectedVertical, startDate, urlSearch]);
+  }, [adsetSearch, comments, endDate, postIdSearch, runFilter, selectedAgent, selectedMediaBuyer, selectedMediaType, selectedVertical, startDate, urlSearch]);
 
   useEffect(() => {
     if (!lightMode) {
       applyFilters();
       setCurrentPage(1);
     }
-  }, [applyFilters, lightMode]);
+  }, [applyFilters, lightMode, selectedMediaType]);
 
   useEffect(() => {
     if (!lightMode) return;
     const filtered = runFilter(
       comments,
-      pendingAgent, pendingMediaBuyer, pendingVertical,
+      pendingAgent, pendingMediaBuyer, pendingVertical, selectedMediaType,
       pendingStartDate, pendingEndDate,
       pendingAdsetSearch, pendingUrlSearch, pendingPostIdSearch
     );
     setFilteredComments(filtered);
     setLightPage(1);
     setCurrentPage(1);
-  }, [comments, lightMode, pendingAdsetSearch, pendingAgent, pendingEndDate, pendingMediaBuyer, pendingPostIdSearch, pendingStartDate, pendingUrlSearch, pendingVertical, runFilter]);
+  }, [comments, lightMode, pendingAdsetSearch, pendingAgent, pendingEndDate, pendingMediaBuyer, selectedMediaType, pendingPostIdSearch, pendingStartDate, pendingUrlSearch, pendingVertical, runFilter]);
 
   const clearFilters = () => {
     setSelectedAgent('');
@@ -326,6 +404,17 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
   const fetchAIComments = async (requestId: number) => {
     setLoadingAIComments(true);
     try {
+      if (demoMode) {
+        // En modo demo, usar comentarios de ejemplo
+        setTimeout(() => {
+          setGeminiComments(mockGeminiComments);
+          setGptComments(mockGptComments);
+          setClaudeComments(mockClaudeComments);
+          setLoadingAIComments(false);
+        }, 500);
+        return;
+      }
+
       const [geminiResponse, gptResponse, claudeResponse] = await Promise.all([
         supabase
           .from('gemini_comments')
@@ -532,7 +621,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         userId: user?.id || '',
         visibility: selectedComment.visibility || 'private',
         PostId: selectedComment.id,
-        mediaType: selectedComment.mediaType || 'video'
+        mediaType: selectedComment.media_type || 'video'
       };
 
       const response = await fetch(webhookUrls.regenerateScript, {
@@ -566,7 +655,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
           <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
         </div>
       </div>
@@ -613,23 +702,37 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Comentarios Generados</h2>
-        <p className="text-gray-600">
-          {hasActiveFilters
-            ? `${filteredComments.length} de ${comments.length} comentarios`
-            : `Total: ${comments.length} comentarios`
-          }
-          {totalPages > 1 && ` — Página ${activePage} de ${totalPages}`}
-        </p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Comentarios Generados</h2>
+          <p className="text-gray-600">
+            {hasActiveFilters
+              ? `${filteredComments.length} de ${comments.length} comentarios`
+              : `Total: ${comments.length} comentarios`
+            }
+            {totalPages > 1 && ` — Página ${activePage} de ${totalPages}`}
+          </p>
+        </div>
+        {/* <button className="bg-accent text-white">
+        </button><button
+          onClick={() => setDemoMode(!demoMode)}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            demoMode
+              ? 'bg-[#D4AE5D] text-white shadow-lg'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+          title={demoMode ? 'Desactivar modo demo' : 'Activar modo demo (datos de ejemplo)'}
+        >
+          {demoMode ? '✓ Modo Demo Activo' : 'Activar Modo Demo'}
+        </button> */}
       </div>
 
-      <div className={`bg-white rounded-xl shadow-sm border p-6 mb-8 ${lightMode ? 'border-amber-200 bg-amber-50/30' : 'border-gray-200'}`}>
+      <div className={`bg-white rounded-xl shadow-sm border p-6 mb-8 ${lightMode ? 'border-accent-soft-border bg-accent-soft/30' : 'border-gray-200'}`}>
         <div className="flex items-center gap-2 mb-4">
-          <Filter className={`w-5 h-5 ${lightMode ? 'text-amber-600' : 'text-gray-600'}`} />
+          <Filter className={`w-5 h-5 ${lightMode ? 'text-accent' : 'text-gray-600'}`} />
           <h3 className="text-lg font-semibold text-gray-900">Filtros</h3>
           {lightMode && (
-            <span className="ml-auto text-xs text-amber-600 font-medium bg-amber-100 px-2 py-0.5 rounded-full">
+            <span className="ml-auto text-xs text-accent font-medium px-2 py-0.5 rounded-full">
               Modo Ligero — filtros en tiempo real
             </span>
           )}
@@ -643,7 +746,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
             <select
               value={lightMode ? pendingAgent : selectedAgent}
               onChange={(e) => lightMode ? setPendingAgent(e.target.value) : setSelectedAgent(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
             >
               <option value="">Todos los agentes</option>
               {agents.map((agent) => (
@@ -661,7 +764,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
             <select
               value={lightMode ? pendingMediaBuyer : selectedMediaBuyer}
               onChange={(e) => lightMode ? setPendingMediaBuyer(e.target.value) : setSelectedMediaBuyer(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
             >
               <option value="">Todos los media buyers</option>
               {mediaBuyers.map((buyer) => (
@@ -679,7 +782,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
             <select
               value={lightMode ? pendingVertical : selectedVertical}
               onChange={(e) => lightMode ? setPendingVertical(e.target.value) : setSelectedVertical(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
             >
               <option value="">Todas las verticales</option>
               {verticals.map((vertical) => (
@@ -689,7 +792,20 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
               ))}
             </select>
           </div>
-
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tipo de Post
+            </label>
+            <select
+              value={selectedMediaType}
+              onChange={(e) => setSelectedMediaType(e.target.value)}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+            >
+              <option value="all">Todos los post</option>
+              <option value="image">Imagen</option>
+              <option value="video">Video</option>
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Rango de fechas
@@ -713,7 +829,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                 value={lightMode ? pendingAdsetSearch : adsetSearch}
                 onChange={(e) => lightMode ? setPendingAdsetSearch(e.target.value) : setAdsetSearch(e.target.value)}
                 placeholder="Buscar video..."
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
           </div>
@@ -729,7 +845,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                 value={lightMode ? pendingUrlSearch : urlSearch}
                 onChange={(e) => lightMode ? setPendingUrlSearch(e.target.value) : setUrlSearch(e.target.value)}
                 placeholder="Buscar URL..."
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
           </div>
@@ -745,7 +861,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                 value={lightMode ? pendingPostIdSearch : postIdSearch}
                 onChange={(e) => lightMode ? setPendingPostIdSearch(e.target.value) : setPostIdSearch(e.target.value)}
                 placeholder="Buscar post #..."
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
           </div>
@@ -774,7 +890,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
           </p>
           <button
             onClick={clearFilters}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-medium"
           >
             Limpiar filtros
           </button>
@@ -790,7 +906,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
               >
                 <div className={`flex items-center justify-between ${lightMode ? 'mb-2' : 'mb-4'}`}>
                   <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-blue-600" />
+                    <MessageSquare className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-gray-900">Post #{comment.id}</span>
                   </div>
                   {lightMode && (
@@ -833,6 +949,14 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                         </div>
                       )}
 
+                      {comment.media_type && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Tag className="w-4 h-4 text-gray-400" />
+                          <span className="text-gray-600">Tipo de post:</span>
+                          <span className="font-medium text-gray-900 capitalize">{comment.media_type}</span>
+                        </div>
+                      )}
+
                       {comment.adset && (
                         <div className="flex items-center gap-2 text-sm">
                           <Tag className="w-4 h-4 text-gray-400" />
@@ -849,7 +973,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}
-                            className="text-blue-600 hover:text-blue-700 hover:underline break-all line-clamp-1"
+                            className="text-primary hover:text-primary-hover hover:underline break-all line-clamp-1"
                           >
                             {comment.url}
                           </a>
@@ -975,7 +1099,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               <div className="flex items-center justify-between pb-4 border-b border-gray-200">
                 <div className="flex items-center gap-3">
-                  <Tag className="w-6 h-6 text-blue-600" />
+                  <Tag className="w-6 h-6 text-primary" />
                   <div>
                     <p className="text-xs text-gray-500">Vertical</p>
                     <p className="text-lg font-semibold text-gray-900">
@@ -1029,26 +1153,39 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
                   {selectedComment.language && (
                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                      <div className="flex items-start gap-3">
-                        <Tag className="w-5 h-5 text-gray-600 mt-1 flex-shrink-0" />
-                        <div className="flex-1">
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-                            Idioma
-                          </p>
-                          <p className="text-base font-medium text-gray-900">
-                            {selectedComment.language}
-                          </p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex items-start gap-3">
+                          <Tag className="w-5 h-5 text-gray-600 mt-1 flex-shrink-0" />
+                          <div className="flex-1">
+                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                              Idioma
+                            </p>
+                            <p className="text-base font-medium text-gray-900">
+                              {selectedComment.language}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <Tag className="w-5 h-5 text-gray-600 mt-1 flex-shrink-0" />
+                          <div className="flex-1">
+                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                              Tipo de post
+                            </p>
+                            <p className="text-base font-medium text-gray-900 capitalize">
+                              {selectedComment.media_type || 'N/A'}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
                   )}
 
                   {selectedComment.adset && (
-                    <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                    <div className="bg-primary-soft rounded-lg p-4 border border-primary-soft">
                       <div className="flex items-start gap-3">
-                        <Tag className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" />
+                        <Tag className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
                         <div className="flex-1">
-                          <p className="text-xs font-medium text-blue-900 uppercase tracking-wide mb-2">
+                          <p className="text-xs font-medium text-gray-900 uppercase tracking-wide mb-2">
                             Video
                           </p>
                           <p className="text-base font-medium text-gray-900">
@@ -1060,18 +1197,18 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                   )}
 
                   {selectedComment.url && (
-                    <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                    <div className="bg-primary-soft rounded-lg p-4 border border-primary-soft">
                       <div className="flex items-start gap-3">
-                        <ExternalLink className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" />
+                        <ExternalLink className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-blue-900 uppercase tracking-wide mb-2">
+                          <p className="text-xs font-medium text-gray-900 uppercase tracking-wide mb-2">
                             URL
                           </p>
                           <a
                             href={selectedComment.url.startsWith('http') ? selectedComment.url : `https://${selectedComment.url}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-base text-blue-600 hover:text-blue-800 hover:underline break-all"
+                            className="text-base text-primary hover:text-primary-hover hover:underline break-all"
                           >
                             {selectedComment.url}
                           </a>
@@ -1114,7 +1251,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                     <button
                       onClick={handleRegenerateScript}
                       disabled={regeneratingScript}
-                      className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-primary hover:text-primary-hover hover:bg-primary-soft rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Re-generar script"
                     >
                       <RefreshCw className={`w-4 h-4 ${regeneratingScript ? 'animate-spin' : ''}`} />
@@ -1178,18 +1315,18 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
               </div>
 
               {selectedComment.Comentarios && (
-                <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-4 border border-amber-200">
+                <div className="bg-gradient-to-br from-accent-soft to-accent-soft-border rounded-lg p-4 border border-accent-soft-border">
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-center gap-3">
-                      <MessageSquare className="w-5 h-5 text-amber-700 flex-shrink-0" />
-                      <p className="text-xs font-medium text-amber-900 uppercase tracking-wide">
+                      <MessageSquare className="w-5 h-5 text-accent flex-shrink-0" />
+                      <p className="text-xs font-medium text-gray-900 uppercase tracking-wide">
                         Comentarios Generados
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => copyToClipboard(selectedComment.Comentarios!, 'comentarios')}
-                        className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-amber-700 hover:text-amber-900 hover:bg-amber-200 rounded-md transition-colors"
+                        className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-accent hover:text-accent-hover hover:bg-accent-soft-border rounded-md transition-colors"
                         title="Copiar comentarios"
                       >
                         {copiedId === 'comentarios' ? (
@@ -1206,7 +1343,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                       </button>
                       <button
                         onClick={() => setCommentsExpanded(!commentsExpanded)}
-                        className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-amber-700 hover:text-amber-900 hover:bg-amber-200 rounded-md transition-colors"
+                        className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-accent hover:text-accent-hover hover:bg-accent-soft-border rounded-md transition-colors"
                       >
                         {commentsExpanded ? (
                           <>
@@ -1224,12 +1361,12 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                   </div>
                   <div className="relative">
                     <div className={`${commentsExpanded ? 'max-h-96' : 'max-h-32'} overflow-y-auto transition-all duration-300`}>
-                      <p className="text-sm text-amber-900 leading-relaxed whitespace-pre-wrap pr-2">
+                      <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap pr-2">
                         {selectedComment.Comentarios}
                       </p>
                     </div>
                     {!commentsExpanded && selectedComment.Comentarios.length > 200 && (
-                      <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-amber-100 to-transparent pointer-events-none"></div>
+                      <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-accent-soft-border to-transparent pointer-events-none"></div>
                     )}
                   </div>
                 </div>
@@ -1237,7 +1374,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
               {loadingAIComments && (
                 <div className="bg-gray-50 rounded-lg p-8 text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                   <p className="text-sm text-gray-600 mt-3">Cargando comentarios AI...</p>
                 </div>
               )}
@@ -1246,7 +1383,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                 <div className="space-y-6">
                   <div className="border-t border-gray-200 pt-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-blue-600" />
+                      <Sparkles className="w-5 h-5 text-primary" />
                       Comentarios Generados por IA
                     </h3>
 
@@ -1461,7 +1598,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                             claudeComments.map((comment) => (
                               <div
                                 key={comment.id}
-                                className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg p-4 border border-orange-200"
+                                className="bg-gradient-to-br from-accent-soft to-accent-soft-border rounded-lg p-4 border border-accent-soft-border"
                               >
                                 <div className="flex items-start justify-between mb-2">
                                   <span className="text-xs font-medium text-orange-800">
@@ -1498,7 +1635,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                           <button
                             onClick={handleRegenerateClaudeComments}
                             disabled={regeneratingClaudeComments}
-                            className="w-full mt-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white py-2.5 px-4 rounded-lg hover:from-orange-700 hover:to-amber-700 transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full mt-3 bg-gradient-to-r from-accent to-accent-hover text-white py-2.5 px-4 rounded-lg hover:from-accent-hover hover:to-accent transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <Sparkles className="w-4 h-4" />
                             {regeneratingClaudeComments ? 'Generando...' : 'Generar nuevos comentarios'}
@@ -1514,7 +1651,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
             <div className="flex-shrink-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-xl">
               <button
                 onClick={handleCloseModal}
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary-hover transition-colors font-medium"
               >
                 Cerrar
               </button>
@@ -1541,7 +1678,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
               <button
                 onClick={handleSuccessModalClose}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-6 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="w-full bg-gradient-to-r from-primary to-primary-hover text-white py-3 px-6 rounded-lg hover:from-primary-hover hover:to-primary transition-all font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 Entendido
               </button>
@@ -1568,7 +1705,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
               <button
                 onClick={handleGptSuccessModalClose}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-6 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="w-full bg-gradient-to-r from-primary to-primary-hover text-white py-3 px-6 rounded-lg hover:from-primary-hover hover:to-primary transition-all font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 Entendido
               </button>
@@ -1581,7 +1718,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
             <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full flex items-center justify-center mb-4 animate-bounce">
+              <div className="w-16 h-16 bg-gradient-to-br from-accent to-accent-hover rounded-full flex items-center justify-center mb-4 animate-bounce">
                 <Check className="w-8 h-8 text-white" />
               </div>
 
@@ -1595,7 +1732,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
               <button
                 onClick={handleClaudeSuccessModalClose}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-6 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="w-full bg-gradient-to-r from-primary to-primary-hover text-white py-3 px-6 rounded-lg hover:from-primary-hover hover:to-primary transition-all font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 Entendido
               </button>
@@ -1608,7 +1745,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
             <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center mb-4 animate-bounce">
+              <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center mb-4 animate-bounce">
                 <Check className="w-8 h-8 text-white" />
               </div>
 
@@ -1622,7 +1759,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
               <button
                 onClick={handleScriptSuccessModalClose}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-6 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="w-full bg-gradient-to-r from-primary to-primary-hover text-white py-3 px-6 rounded-lg hover:from-primary-hover hover:to-primary transition-all font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 Entendido
               </button>
@@ -1633,3 +1770,4 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
     </div>
   );
 }
+

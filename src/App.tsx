@@ -76,7 +76,7 @@ function App() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-100 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -86,18 +86,23 @@ function App() {
   }
 
   return (
+<<<<<<< HEAD
     <div className="flex min-h-screen bg-slate-50">
       <Sidebar currentView={currentView} onNavigate={setCurrentView} isAdmin={isAdmin} />
+=======
+    <div className="flex min-h-screen bg-[#F5F1E6]">
+      <Sidebar currentView={currentView} onNavigate={setCurrentView} />
+>>>>>>> b4bd80950884db1a31420c29e7c312b30defb010
 
       <div className="flex-1 flex flex-col">
-        <header className="bg-white border-b border-gray-200 px-8 py-4 flex justify-end items-center gap-3">
+        <header className="bg-[#262626] border-b border-[#262626] px-8 py-4 flex justify-end items-center gap-3">
           <button
             onClick={() => setLightMode(!lightMode)}
             title={lightMode ? 'Desactivar modo ligero' : 'Activar modo ligero para mejor rendimiento'}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all border ${
               lightMode
-                ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
-                : 'text-gray-500 border-gray-200 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50'
+                ? 'bg-accent text-white border-accent shadow-sm'
+                : 'text-gray-500 border-gray-200 hover:border-accent hover:text-accent hover:bg-accent-soft'
             }`}
           >
             <Zap className="w-3.5 h-3.5" />
