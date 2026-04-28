@@ -1,12 +1,13 @@
-import { MessageSquarePlus, MessageSquare, LogOut } from 'lucide-react';
+import { MessageSquarePlus, MessageSquare, LogOut, Shield } from 'lucide-react';
 import { useAuth } from '../contexts/useAuth';
 
 interface SidebarProps {
-  currentView: 'generator' | 'comments';
-  onNavigate: (view: 'generator' | 'comments') => void;
+  currentView: 'generator' | 'comments' | 'admin';
+  onNavigate: (view: 'generator' | 'comments' | 'admin') => void;
+  isAdmin: boolean;
 }
 
-export function Sidebar({ currentView, onNavigate }: SidebarProps) {
+export function Sidebar({ currentView, onNavigate, isAdmin }: SidebarProps) {
   const { signOut, user } = useAuth();
 
   const handleSignOut = async () => {
@@ -47,6 +48,19 @@ export function Sidebar({ currentView, onNavigate }: SidebarProps) {
           <MessageSquare className="w-5 h-5" />
           <span>Ver comentarios</span>
         </button>
+        {isAdmin && (
+          <button
+            onClick={() => onNavigate('admin')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              currentView === 'admin'
+                ? 'bg-blue-600 text-white'
+                : 'text-slate-300 hover:bg-slate-800'
+            }`}
+          >
+            <Shield className="w-5 h-5" />
+            <span>Admin</span>
+          </button>
+        )}
       </nav>
 
       <div className="p-4 border-t border-slate-800">

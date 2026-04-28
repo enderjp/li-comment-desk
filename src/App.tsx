@@ -6,15 +6,21 @@ import { Sidebar } from './components/Sidebar';
 import { CommentGeneratorForm } from './components/CommentGeneratorForm';
 import { CommentsView } from './components/CommentsView';
 import { NotificationBell } from './components/NotificationBell';
+import { AdminPanel } from './components/AdminPanel';
+import { supabase } from './lib/supabase';
 import { Loader2, Zap } from 'lucide-react';
 
 function App() {
   const { user, loading } = useAuth();
-  const [currentView, setCurrentView] = useState<'generator' | 'comments'>('generator');
+  const [currentView, setCurrentView] = useState<'generator' | 'comments' | 'admin'>('generator');
   const [prefilterAdset, setPrefilterAdset] = useState<string>('');
   const [selectedRequestId, setSelectedRequestId] = useState<string>('');
   const [isConfirmPage, setIsConfirmPage] = useState(false);
   const [lightMode, setLightMode] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  const isAdmin = userRole === 'admin';
+  const effectiveView = currentView === 'admin' && !isAdmin ? 'generator' : currentView;
 
   useEffect(() => {
     // Check if URL has confirmation tokens in hash
@@ -26,6 +32,42 @@ function App() {
       setIsConfirmPage(true);
     }
   }, []);
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      if (!user?.id) {
+        setUserRole(null);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error fetching user role in App:', error);
+          setUserRole(null);
+          return;
+        }
+
+        setUserRole(data?.role ?? null);
+      } catch (error) {
+        console.error('Error fetching user role in App:', error);
+        setUserRole(null);
+      }
+    };
+
+    fetchUserRole();
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!isAdmin && currentView === 'admin') {
+      setCurrentView('generator');
+    }
+  }, [currentView, isAdmin]);
 
   if (isConfirmPage) {
     return <EmailConfirmation />;
@@ -45,7 +87,7 @@ function App() {
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <Sidebar currentView={currentView} onNavigate={setCurrentView} />
+      <Sidebar currentView={currentView} onNavigate={setCurrentView} isAdmin={isAdmin} />
 
       <div className="flex-1 flex flex-col">
         <header className="bg-white border-b border-gray-200 px-8 py-4 flex justify-end items-center gap-3">
@@ -77,7 +119,7 @@ function App() {
         </header>
 
         <main className="flex-1 p-8">
-          {currentView === 'generator' && (
+          {effectiveView === 'generator' && (
             <CommentGeneratorForm
               onNavigateToComments={(adset) => {
                 setPrefilterAdset(adset);
@@ -86,7 +128,7 @@ function App() {
               }}
             />
           )}
-          {currentView === 'comments' && (
+          {effectiveView === 'comments' && (
             <CommentsView
               prefilterAdset={prefilterAdset}
               selectedRequestId={selectedRequestId}
@@ -97,6 +139,7 @@ function App() {
               }}
             />
           )}
+          {effectiveView === 'admin' && isAdmin && <AdminPanel isAdmin={isAdmin} />}
         </main>
       </div>
     </div>

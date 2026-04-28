@@ -12,4 +12,5 @@ export const webhookUrls = {
   regenerateGpt: requireEnvVar('VITE_N8N_WEBHOOK_UPDATE_GPT_COMMENTS', import.meta.env.VITE_N8N_WEBHOOK_UPDATE_GPT_COMMENTS),
   regenerateClaude: requireEnvVar('VITE_N8N_WEBHOOK_UPDATE_CLAUDE_COMMENTS', import.meta.env.VITE_N8N_WEBHOOK_UPDATE_CLAUDE_COMMENTS),
   regenerateScript: requireEnvVar('VITE_N8N_WEBHOOK_UPDATE_SCRIPT', import.meta.env.VITE_N8N_WEBHOOK_UPDATE_SCRIPT),
+  updateFacebookCookies: requireEnvVar('VITE_N8N_WEBHOOK_UPDATE_FB_COOKIES', import.meta.env.VITE_N8N_WEBHOOK_UPDATE_FB_COOKIES),
 };
