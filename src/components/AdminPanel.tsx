@@ -116,13 +116,13 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
           <h2 className="text-2xl font-bold text-gray-900">Panel de Administracion</h2>
         </div>
         <p className="text-gray-500 mb-8">
-          Herramientas exclusivas para usuarios admin.
+          Herramientas para administradores.
         </p>
 
         <div className="border border-gray-200 rounded-xl p-6 bg-gray-50">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Actualizar cookies de Facebook</h3>
           <p className="text-sm text-gray-600 mb-5">
-            Sube un archivo <span className="font-medium">.txt</span> con las cookies para enviarlo al webhook de n8n.
+            Sube un archivo <span className="font-medium">.txt</span> con las cookies actualizadas
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -165,7 +165,7 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
             <button
               type="submit"
               disabled={isUploading}
-              className="w-full sm:w-auto bg-blue-600 text-white py-2.5 px-5 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
+              className="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
             >
               {isUploading ? (
                 <>
