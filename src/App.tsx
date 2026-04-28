@@ -86,13 +86,8 @@ function App() {
   }
 
   return (
-<<<<<<< HEAD
-    <div className="flex min-h-screen bg-slate-50">
-      <Sidebar currentView={currentView} onNavigate={setCurrentView} isAdmin={isAdmin} />
-=======
     <div className="flex min-h-screen bg-[#F5F1E6]">
-      <Sidebar currentView={currentView} onNavigate={setCurrentView} />
->>>>>>> b4bd80950884db1a31420c29e7c312b30defb010
+      <Sidebar currentView={currentView} onNavigate={setCurrentView} isAdmin={isAdmin} />
 
       <div className="flex-1 flex flex-col">
         <header className="bg-[#262626] border-b border-[#262626] px-8 py-4 flex justify-end items-center gap-3">
