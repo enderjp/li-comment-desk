@@ -99,3 +99,8 @@ select {
   --color-accent-soft: 242 211 154; /* #F2D39A */
   --color-accent-soft-border: 212 174 93; /* #D4AE5D */
 }
+
+.text-accent-gram {
+  font-family: 'Gram', system-ui, sans-serif;
+  color: #D4AE5D;
+}

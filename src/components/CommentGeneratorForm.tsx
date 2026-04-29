@@ -284,7 +284,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
   return (
     <div className="max-w-3xl mx-auto">
       <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#D4AE5D]/30 p-8">
-        <h2 className="text-2xl font-bold text-primary mb-2">
+        <h2 className="text-2xl font-bold text-accent-gram mb-2">
           Generador de comentarios para Social Media posts
         </h2>
         <p className="text-[#517267] mb-8">
