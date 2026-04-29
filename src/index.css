@@ -1,3 +1,89 @@
+@font-face {
+  font-family: 'Gram';
+  src: url('./fonts/FONTSPRINGDEMO-GramRegular.woff2') format('woff2'),
+       url('./fonts/FONTSPRINGDEMO-GramRegular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gram';
+  src: url('./fonts/FONTSPRINGDEMO-GramBold.woff2') format('woff2'),
+       url('./fonts/FONTSPRINGDEMO-GramBold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AlbertSans';
+  src: url('./fonts/AlbertSans-SemiBold.woff2') format('woff2'),
+       url('./fonts/AlbertSans-SemiBold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AlbertSans';
+  src: url('./fonts/AlbertSans-Regular.woff2') format('woff2'),
+       url('./fonts/AlbertSans-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AlbertSans';
+  src: url('./fonts/AlbertSans-Thin.woff2') format('woff2'),
+       url('./fonts/AlbertSans-Thin.woff') format('woff');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'AlbertSans';
+  src: url('./fonts/AlbertSans-Italic.woff2') format('woff2'),
+       url('./fonts/AlbertSans-Italic.woff') format('woff');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+h1 {
+  font-family: 'Gram', system-ui, sans-serif;
+  font-weight: 700;
+}
+
+h2 {
+  font-family: 'AlbertSans', system-ui, sans-serif;
+  font-weight: 600;
+}
+
+p,
+label {
+  font-family: 'AlbertSans', system-ui, sans-serif;
+  font-weight: 400;
+}
+
+textarea {
+  font-family: 'AlbertSans', system-ui, sans-serif;
+  font-weight: 400;
+  font-style: italic;
+}
+
+input {
+  font-family: 'AlbertSans', system-ui, sans-serif;
+  font-weight: 400;
+}
+
+select {
+  font-family: 'AlbertSans', system-ui, sans-serif;
+  font-weight: 400;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
