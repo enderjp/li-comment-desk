@@ -92,7 +92,7 @@ select {
   /* Cambia estos valores para modificar la paleta global */
   --color-primary: 41 64 56; /* #294038 */
   --color-primary-hover: 81 114 103; /* #517267 */
-  --color-primary-soft: 81 114 103; /* #517267 */
+  --color-primary-soft: 204 225 213; /* #CCE1D5 */
 
   --color-accent: 212 174 93; /* #D4AE5D */
   --color-accent-hover: 242 211 154; /* #F2D39A */

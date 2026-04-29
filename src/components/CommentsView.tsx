@@ -704,7 +704,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
     <div className="max-w-6xl mx-auto">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-accent-gram mb-2">Comentarios Generados</h2>
+          <h2 className="text-[2rem] font-bold text-accent-gram mb-2">Comentarios Generados</h2>
           <p className="text-gray-600">
             {hasActiveFilters
               ? `${filteredComments.length} de ${comments.length} comentarios`
@@ -1208,7 +1208,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                             href={selectedComment.url.startsWith('http') ? selectedComment.url : `https://${selectedComment.url}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-base text-primary hover:text-primary-hover hover:underline break-all"
+                            className="text-base text-primary hover:text-accent-hover hover:underline break-all"
                           >
                             {selectedComment.url}
                           </a>
