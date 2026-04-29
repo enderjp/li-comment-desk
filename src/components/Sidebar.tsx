@@ -1,5 +1,6 @@
 import { MessageSquarePlus, MessageSquare, LogOut, Shield } from 'lucide-react';
 import { useAuth } from '../contexts/useAuth';
+import logoLi from '../assets/logoli1.png';
 
 interface SidebarProps {
   currentView: 'generator' | 'comments' | 'admin';
@@ -20,9 +21,14 @@ export function Sidebar({ currentView, onNavigate, isAdmin }: SidebarProps) {
 
   return (
     <div className="w-64 bg-[#262626] min-h-screen flex flex-col">
-      <div className="p-6 border-b border-[#262626]">
-        <h1 className="text-2xl font-bold text-accent">Leads Icon</h1>
-        <p className="text-sm text-accent-hover mt-1">Comment Desk</p>
+      <div className="p-6 border-b border-[#262626] flex flex-col items-center">
+      <img 
+        src={logoLi}
+        alt="Leads Icon Logo" 
+        className="w-28 h-auto mb-4 object-contain hover:scale-105 transition-transform" 
+      />
+        <h1 className="text-2xl font-bold text-accent">Comment Desk</h1>
+
       </div>
 
       <nav className="flex-1 p-4 space-y-2">
