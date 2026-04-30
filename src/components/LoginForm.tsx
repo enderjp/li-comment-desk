@@ -108,7 +108,7 @@ export function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full font-bold font-['Gram'] uppercase border-[#D9D9D9] bg-primary text-white text-2xl py-1.5 px-4 rounded-sm hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full font-bold font-['Gram'] uppercase border border-gray-300 bg-primary text-white text-2xl py-1.5 px-4 rounded-sm hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
