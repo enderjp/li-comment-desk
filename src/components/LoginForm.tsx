@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/useAuth';
 import { Loader2, LogIn, Mail } from 'lucide-react';
+import logoLi from '../assets/logoli1.png';
 
 export function LoginForm() {
   const { signIn, signUp } = useAuth();
@@ -32,25 +33,27 @@ export function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-soft to-slate-100 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
+    <div className="min-h-screen bg-black from-primary-soft to-slate-100 flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-[#262626] rounded-xl shadow-lg p-8 border border-gray-400">
         <div className="flex items-center justify-center mb-8">
-          <div className="bg-primary rounded-lg p-3">
-            <LogIn className="w-8 h-8 text-white" />
-          </div>
+          <img 
+            src={logoLi}
+            alt="Leads Icon Logo" 
+            className="w-28 h-auto mb-4 object-contain hover:scale-105 transition-transform" 
+          />
         </div>
 
-        <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">
-          Leads Icon
+        <h1 className="text-3xl font-bold text-center text-[#D4AE5D] mb-2">
+          Comment Desk
         </h1>
-        <p className="text-center text-gray-500 mb-8">
+        <p className="text-center text-gray-300 mb-8">
           {isSignUp ? 'Create your account' : 'Sign in to your account'}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {isSignUp && (
             <div>
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="fullName" className="block text-sm font-medium text-gray-100 mb-1">
                 Full Name
               </label>
               <input
@@ -66,7 +69,7 @@ export function LoginForm() {
           )}
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-100 mb-1">
               Email
             </label>
             <input
@@ -75,13 +78,13 @@ export function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-primary focus:border-transparent"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-100 mb-1">
               Password
             </label>
             <input
@@ -91,7 +94,7 @@ export function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-primary focus:border-transparent"
               placeholder="••••••••"
             />
           </div>
@@ -105,7 +108,7 @@ export function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full font-bold font-['Gram'] uppercase border-[#D9D9D9] bg-primary text-white text-2xl py-1.5 px-4 rounded-sm hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -125,7 +128,7 @@ export function LoginForm() {
               setError(null);
               setShowEmailSent(false);
             }}
-            className="text-sm text-primary hover:text-primary-hover"
+            className="text-sm text-[#D4AE5D] hover:text-[#F2D39A]"
           >
             {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
           </button>
