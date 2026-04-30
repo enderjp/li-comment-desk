@@ -1,6 +1,7 @@
-import { MessageSquarePlus, MessageSquare, LogOut, Shield } from 'lucide-react';
-import { useAuth } from '../contexts/useAuth';
+import { LogOut, MessageSquare, MessageSquarePlus, Shield } from 'lucide-react';
 import logoLi from '../assets/logoli1.png';
+import { useAuth } from '../contexts/useAuth';
+import { useLanguage } from '../contexts/useLanguage';
 
 interface SidebarProps {
   currentView: 'generator' | 'comments' | 'admin';
@@ -10,25 +11,25 @@ interface SidebarProps {
 
 export function Sidebar({ currentView, onNavigate, isAdmin }: SidebarProps) {
   const { signOut, user } = useAuth();
+  const { t } = useLanguage();
 
   const handleSignOut = async () => {
     try {
       await signOut();
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error(t('sidebar.signOutError'), error);
     }
   };
 
   return (
     <div className="w-64 bg-[#262626] min-h-screen flex flex-col">
       <div className="p-6 border-b border-[#262626] flex flex-col items-center">
-      <img 
-        src={logoLi}
-        alt="Leads Icon Logo" 
-        className="w-28 h-auto mb-4 object-contain hover:scale-105 transition-transform" 
-      />
-        <h1 className="text-2xl font-bold text-accent">Comment Desk</h1>
-
+        <img
+          src={logoLi}
+          alt="Leads Icon Logo"
+          className="w-28 h-auto mb-4 object-contain hover:scale-105 transition-transform"
+        />
+        <h1 className="text-2xl font-bold text-accent">{t('common.appName')}</h1>
       </div>
 
       <nav className="flex-1 p-4 space-y-2">
@@ -41,7 +42,7 @@ export function Sidebar({ currentView, onNavigate, isAdmin }: SidebarProps) {
           }`}
         >
           <MessageSquarePlus className="w-5 h-5" />
-          <span>Generar comentarios</span>
+          <span>{t('sidebar.generator')}</span>
         </button>
         <button
           onClick={() => onNavigate('comments')}
@@ -52,7 +53,7 @@ export function Sidebar({ currentView, onNavigate, isAdmin }: SidebarProps) {
           }`}
         >
           <MessageSquare className="w-5 h-5" />
-          <span>Ver comentarios</span>
+          <span>{t('sidebar.comments')}</span>
         </button>
         {isAdmin && (
           <button
@@ -64,14 +65,14 @@ export function Sidebar({ currentView, onNavigate, isAdmin }: SidebarProps) {
             }`}
           >
             <Shield className="w-5 h-5" />
-            <span>Admin</span>
+            <span>{t('sidebar.admin')}</span>
           </button>
         )}
       </nav>
 
       <div className="p-4 border-t border-[#D9D9D9]/30">
         <div className="mb-3 px-2">
-          <p className="text-sm text-[#D9D9D9]">Signed in as</p>
+          <p className="text-sm text-[#D9D9D9]">{t('sidebar.signedInAs')}</p>
           <p className="text-sm text-white truncate">{user?.email}</p>
         </div>
         <button
@@ -79,7 +80,7 @@ export function Sidebar({ currentView, onNavigate, isAdmin }: SidebarProps) {
           className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-[#D9D9D9] hover:bg-[#D9D9D9]/20 transition-colors"
         >
           <LogOut className="w-5 h-5" />
-          <span>Sign Out</span>
+          <span>{t('sidebar.signOut')}</span>
         </button>
       </div>
     </div>

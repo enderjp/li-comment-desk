@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+﻿import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { Comment, GeminiComment, GptComment, ClaudeComment } from '../lib/database.types';
 import { MessageSquare, ExternalLink, Calendar, User, Tag, X, FileText, Search, Filter, Bot, Sparkles, ChevronDown, ChevronUp, Copy, Check, RefreshCw } from 'lucide-react';
 import { DateRangePicker } from './DateRangePicker';
 import { useAuth } from '../contexts/useAuth';
+import { useLanguage } from '../contexts/useLanguage';
 import { webhookUrls } from '../lib/webhooks';
 
 const PAGE_SIZE = 15;
@@ -12,11 +13,14 @@ interface CommentsViewProps {
   prefilterAdset?: string;
   selectedRequestId?: string;
   lightMode?: boolean;
+  demoMode?: boolean;
   onClearPrefilter?: () => void;
 }
 
-export function CommentsView({ prefilterAdset = '', selectedRequestId = '', lightMode = false, onClearPrefilter }: CommentsViewProps) {
+export function CommentsView({ prefilterAdset = '', selectedRequestId = '', lightMode = false, demoMode = false, onClearPrefilter }: CommentsViewProps) {
   const { user } = useAuth();
+  const { language, t } = useLanguage();
+  const locale = language === 'en' ? 'en-US' : 'es-ES';
   const [comments, setComments] = useState<Comment[]>([]);
   const [filteredComments, setFilteredComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +67,6 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
   const [pendingAdsetSearch, setPendingAdsetSearch] = useState<string>('');
   const [pendingUrlSearch, setPendingUrlSearch] = useState<string>('');
   const [pendingPostIdSearch, setPendingPostIdSearch] = useState<string>('');
-  const [demoMode, setDemoMode] = useState(false);
   const prevLightMode = useRef(lightMode);
 
   // Datos de ejemplo para modo demo
@@ -154,43 +157,43 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
   }, [lightMode, prefilterAdset]);
 
   useEffect(() => {
-    console.log('🔄 useEffect ejecutándose - selectedRequestId:', selectedRequestId, 'comments.length:', comments.length, 'loading:', loading);
-    console.log('🔍 selectedComment actual:', selectedComment ? `Post #${selectedComment.request_id}` : 'null');
+    console.log('?? useEffect ejecutándose - selectedRequestId:', selectedRequestId, 'comments.length:', comments.length, 'loading:', loading);
+    console.log('?? selectedComment actual:', selectedComment ? `Post #${selectedComment.request_id}` : 'null');
 
     // Only try to find and open the comment when:
     // 1. We have a selectedRequestId
     // 2. We have loaded comments (not loading and comments exist)
     // 3. We don't already have a selected comment open
     if (selectedRequestId && !loading && comments.length > 0 && !selectedComment) {
-      console.log('🔍 Buscando comentario con request_id:', selectedRequestId);
-      console.log('📊 Total de comentarios disponibles:', comments.length);
-      console.log('📋 Request IDs disponibles:', comments.map(c => c.request_id).join(', '));
+      console.log('?? Buscando comentario con request_id:', selectedRequestId);
+      console.log('?? Total de comentarios disponibles:', comments.length);
+      console.log('?? Request IDs disponibles:', comments.map(c => c.request_id).join(', '));
 
       // selectedRequestId is the request_id from comments table (as a string)
       // Find the comment that matches this request_id
       const comment = comments.find(c => c.request_id.toString() === selectedRequestId);
 
       if (comment) {
-        console.log('✅ Comentario encontrado:', comment);
-        console.log('📂 Estableciendo selectedComment para abrir modal...');
+        console.log('? Comentario encontrado:', comment);
+        console.log('?? Estableciendo selectedComment para abrir modal...');
         setSelectedComment(comment);
         fetchAIComments(comment.request_id);
-        console.log('✅ Modal debería abrirse ahora');
+        console.log('? Modal debería abrirse ahora');
       } else {
-        console.warn('❌ No se encontró ningún comentario con request_id:', selectedRequestId);
-        console.log('🔍 Intentando búsqueda menos estricta...');
+        console.warn('? No se encontró ningún comentario con request_id:', selectedRequestId);
+        console.log('?? Intentando búsqueda menos estricta...');
         // Try to find by number comparison
         const commentByNumber = comments.find(c => c.request_id === Number(selectedRequestId));
         if (commentByNumber) {
-          console.log('✅ Encontrado con conversión numérica:', commentByNumber);
+          console.log('? Encontrado con conversión numérica:', commentByNumber);
           setSelectedComment(commentByNumber);
           fetchAIComments(commentByNumber.request_id);
         } else {
-          console.error('❌ No se encontró el comentario de ninguna forma');
+          console.error('? No se encontró el comentario de ninguna forma');
         }
       }
     } else {
-      console.log('⏭️ Saltando búsqueda de comentario. Razones:', {
+      console.log('?? Saltando búsqueda de comentario. Razones:', {
         'Tiene selectedRequestId': !!selectedRequestId,
         'No está loading': !loading,
         'Tiene comentarios': comments.length > 0,
@@ -228,14 +231,14 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
       }
       setError(null);
 
-      console.log('📥 Cargando comentarios con userRole:', userRole);
+      console.log('?? Cargando comentarios con userRole:', userRole);
 
       let query = supabase
         .from('comments')
         .select('*');
 
       if (userRole === 'agent') {
-        console.log('⚠️ Usuario es agent - filtrando solo comentarios públicos');
+        console.log('?? Usuario es agent - filtrando solo comentarios públicos');
         query = query.eq('visibility', 'public');
       }
 
@@ -246,8 +249,8 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
       if (fetchError) throw fetchError;
 
-      console.log('📊 Comentarios cargados:', data?.length || 0);
-      console.log('📋 Request IDs cargados:', data?.map(c => c.request_id).join(', '));
+      console.log('?? Comentarios cargados:', data?.length || 0);
+      console.log('?? Request IDs cargados:', data?.map(c => c.request_id).join(', '));
 
       setComments((data ?? []) as Comment[]);
       extractFilterOptions((data ?? []) as Comment[]);
@@ -269,7 +272,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
       setLoading(true);
       setTimeout(() => {
         setComments([mockCommentData]);
-        setFilteredComments([mockCommentData]); // ← Importante: También cargar los comentarios filtrados
+        setFilteredComments([mockCommentData]); // ? Importante: También cargar los comentarios filtrados
         extractFilterOptions([mockCommentData]);
         setLoading(false);
       }, 300);
@@ -392,7 +395,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString(locale, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -683,6 +686,37 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
   const totalPages = Math.ceil(filteredComments.length / PAGE_SIZE);
   const activePage = lightMode ? lightPage : currentPage;
   const pagedComments = filteredComments.slice((activePage - 1) * PAGE_SIZE, activePage * PAGE_SIZE);
+  const commentsSummary = hasActiveFilters
+    ? t('commentsView.filteredSummary', {
+        filtered: String(filteredComments.length),
+        total: String(comments.length),
+      })
+    : t('commentsView.totalSummary', {
+        total: String(comments.length),
+      });
+  const pageSummary =
+    totalPages > 1
+      ? ` - ${t('commentsView.pageSummary', {
+          current: String(activePage),
+          total: String(totalPages),
+        })}`
+      : '';
+  const dateRangeLabels = {
+    selectPeriod: t('commentsView.dateSelectPeriod'),
+    from: t('commentsView.dateFrom'),
+    until: t('commentsView.dateUntil'),
+    today: t('commentsView.dateToday'),
+    yesterday: t('commentsView.dateYesterday'),
+    last2Days: t('commentsView.dateLast2Days'),
+    thisWeek: t('commentsView.dateThisWeek'),
+    last7Days: t('commentsView.dateLast7Days'),
+    thisMonth: t('commentsView.dateThisMonth'),
+    last30Days: t('commentsView.dateLast30Days'),
+    customDates: t('commentsView.dateCustomDates'),
+    startDate: t('commentsView.dateStartDate'),
+    endDate: t('commentsView.dateEndDate'),
+    apply: t('commentsView.dateApply'),
+  };
 
   if (comments.length === 0) {
     return (
@@ -690,10 +724,10 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
           <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-700 mb-2">
-            No hay comentarios todavía
+            {t('commentsView.noCommentsTitle')}
           </h3>
           <p className="text-gray-500">
-            Los comentarios generados aparecerán aquí
+            {t('commentsView.noCommentsDescription')}
           </p>
         </div>
       </div>
@@ -704,13 +738,10 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
     <div className="max-w-6xl mx-auto">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h2 className="text-[2rem] font-bold text-accent-gram mb-2">Comentarios Generados</h2>
+          <h2 className="text-[2rem] font-bold text-accent-gram mb-2">{t('commentsView.title')}</h2>
           <p className="text-gray-600">
-            {hasActiveFilters
-              ? `${filteredComments.length} de ${comments.length} comentarios`
-              : `Total: ${comments.length} comentarios`
-            }
-            {totalPages > 1 && ` — Página ${activePage} de ${totalPages}`}
+            {commentsSummary}
+            {pageSummary}
           </p>
         </div>
         {/* <button className="bg-accent text-white">
@@ -723,17 +754,17 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
           }`}
           title={demoMode ? 'Desactivar modo demo' : 'Activar modo demo (datos de ejemplo)'}
         >
-          {demoMode ? '✓ Modo Demo Activo' : 'Activar Modo Demo'}
+          {demoMode ? '? Modo Demo Activo' : 'Activar Modo Demo'}
         </button> */}
       </div>
 
       <div className={`bg-white rounded-xl shadow-sm border p-6 mb-8 ${lightMode ? 'border-accent-soft-border bg-accent-soft/30' : 'border-gray-200'}`}>
         <div className="flex items-center gap-2 mb-4">
           <Filter className={`w-5 h-5 ${lightMode ? 'text-accent' : 'text-gray-600'}`} />
-          <h3 className="text-lg font-semibold text-gray-900">Filtros</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t('commentsView.filtersTitle')}</h3>
           {lightMode && (
             <span className="ml-auto text-xs text-accent font-medium px-2 py-0.5 rounded-full">
-              Modo Ligero — filtros en tiempo real
+              {t('commentsView.lightModeBadge')}
             </span>
           )}
         </div>
@@ -741,14 +772,14 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Agente CS
+              {t('commentsView.agent')}
             </label>
             <select
               value={lightMode ? pendingAgent : selectedAgent}
               onChange={(e) => lightMode ? setPendingAgent(e.target.value) : setSelectedAgent(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
             >
-              <option value="">Todos los agentes</option>
+              <option value="">{t('commentsView.allAgents')}</option>
               {agents.map((agent) => (
                 <option key={agent} value={agent}>
                   {agent}
@@ -759,14 +790,14 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Media Buyer
+              {t('commentsView.mediaBuyer')}
             </label>
             <select
               value={lightMode ? pendingMediaBuyer : selectedMediaBuyer}
               onChange={(e) => lightMode ? setPendingMediaBuyer(e.target.value) : setSelectedMediaBuyer(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
             >
-              <option value="">Todos los media buyers</option>
+              <option value="">{t('commentsView.allMediaBuyers')}</option>
               {mediaBuyers.map((buyer) => (
                 <option key={buyer} value={buyer}>
                   {buyer}
@@ -777,14 +808,14 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Vertical
+              {t('commentsView.vertical')}
             </label>
             <select
               value={lightMode ? pendingVertical : selectedVertical}
               onChange={(e) => lightMode ? setPendingVertical(e.target.value) : setSelectedVertical(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
             >
-              <option value="">Todas las verticales</option>
+              <option value="">{t('commentsView.allVerticals')}</option>
               {verticals.map((vertical) => (
                 <option key={vertical} value={vertical}>
                   {vertical}
@@ -794,33 +825,35 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tipo de Post
+              {t('commentsView.postType')}
             </label>
             <select
               value={selectedMediaType}
               onChange={(e) => setSelectedMediaType(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
             >
-              <option value="all">Todos los post</option>
-              <option value="image">Imagen</option>
-              <option value="video">Video</option>
+              <option value="all">{t('commentsView.allPosts')}</option>
+              <option value="image">{t('commentsView.image')}</option>
+              <option value="video">{t('commentsView.video')}</option>
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Rango de fechas
+              {t('commentsView.dateRange')}
             </label>
             <DateRangePicker
               startDate={lightMode ? pendingStartDate : startDate}
               endDate={lightMode ? pendingEndDate : endDate}
               onStartDateChange={lightMode ? setPendingStartDate : setStartDate}
               onEndDateChange={lightMode ? setPendingEndDate : setEndDate}
+              labels={dateRangeLabels}
+              locale={locale}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Buscar por Video
+              {t('commentsView.searchByVideo')}
             </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -828,7 +861,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                 type="text"
                 value={lightMode ? pendingAdsetSearch : adsetSearch}
                 onChange={(e) => lightMode ? setPendingAdsetSearch(e.target.value) : setAdsetSearch(e.target.value)}
-                placeholder="Buscar video..."
+                placeholder={t('commentsView.searchVideoPlaceholder')}
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
@@ -836,7 +869,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Buscar por URL
+              {t('commentsView.searchByUrl')}
             </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -844,7 +877,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                 type="text"
                 value={lightMode ? pendingUrlSearch : urlSearch}
                 onChange={(e) => lightMode ? setPendingUrlSearch(e.target.value) : setUrlSearch(e.target.value)}
-                placeholder="Buscar URL..."
+                placeholder={t('commentsView.searchUrlPlaceholder')}
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
@@ -852,7 +885,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Buscar por Número de Post
+              {t('commentsView.searchByPostNumber')}
             </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -860,7 +893,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                 type="text"
                 value={lightMode ? pendingPostIdSearch : postIdSearch}
                 onChange={(e) => lightMode ? setPendingPostIdSearch(e.target.value) : setPostIdSearch(e.target.value)}
-                placeholder="Buscar post #..."
+                placeholder={t('commentsView.searchPostNumberPlaceholder')}
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
@@ -873,7 +906,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
               onClick={clearFilters}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
             >
-              Limpiar filtros
+              {t('commentsView.clearFilters')}
             </button>
           )}
         </div>
@@ -883,16 +916,16 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
           <Search className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-700 mb-2">
-            No se encontraron resultados
+            {t('commentsView.noResultsTitle')}
           </h3>
           <p className="text-gray-500 mb-4">
-            No hay comentarios que coincidan con los filtros seleccionados
+            {t('commentsView.noResultsDescription')}
           </p>
           <button
             onClick={clearFilters}
             className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-medium"
           >
-            Limpiar filtros
+            {t('commentsView.clearFilters')}
           </button>
         </div>
       ) : (
@@ -907,10 +940,10 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                 <div className={`flex items-center justify-between ${lightMode ? 'mb-2' : 'mb-4'}`}>
                   <div className="flex items-center gap-2">
                     <MessageSquare className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium text-gray-900">Post #{comment.id}</span>
+                    <span className="text-sm font-medium text-gray-900">{t('commentsView.postLabel')} #{comment.id}</span>
                   </div>
                   {lightMode && (
-                    <span className="text-xs text-gray-400">{new Date(comment.created_at).toLocaleDateString('es-ES')}</span>
+                    <span className="text-xs text-gray-400">{new Date(comment.created_at).toLocaleDateString(locale)}</span>
                   )}
                 </div>
 
@@ -920,7 +953,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                       {comment.agente_customer_service && (
                         <div className="flex items-center gap-2 text-sm">
                           <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                          <span className="text-gray-600">Agente:</span>
+                          <span className="text-gray-600">{t('commentsView.agentLabel')}:</span>
                           <span className="font-medium text-gray-900">{comment.agente_customer_service}</span>
                         </div>
                       )}
@@ -928,7 +961,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                       {comment.media_buyer && (
                         <div className="flex items-center gap-2 text-sm">
                           <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                          <span className="text-gray-600">Media Buyer:</span>
+                          <span className="text-gray-600">{t('commentsView.mediaBuyerLabel')}:</span>
                           <span className="font-medium text-gray-900">{comment.media_buyer}</span>
                         </div>
                       )}
@@ -936,7 +969,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                       {comment.vertical && (
                         <div className="flex items-center gap-2 text-sm">
                           <Tag className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                          <span className="text-gray-600">Vertical:</span>
+                          <span className="text-gray-600">{t('commentsView.verticalLabel')}:</span>
                           <span className="font-medium text-gray-900">{comment.vertical}</span>
                         </div>
                       )}
@@ -944,7 +977,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                       {comment.language && (
                         <div className="flex items-center gap-2 text-sm">
                           <Tag className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-600">Idioma:</span>
+                          <span className="text-gray-600">{t('commentsView.languageLabel')}:</span>
                           <span className="font-medium text-gray-900">{comment.language}</span>
                         </div>
                       )}
@@ -952,7 +985,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                       {comment.media_type && (
                         <div className="flex items-center gap-2 text-sm">
                           <Tag className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-600">Tipo de post:</span>
+                          <span className="text-gray-600">{t('commentsView.postTypeLabel')}:</span>
                           <span className="font-medium text-gray-900 capitalize">{comment.media_type}</span>
                         </div>
                       )}
@@ -960,7 +993,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                       {comment.adset && (
                         <div className="flex items-center gap-2 text-sm">
                           <Tag className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-600">Video:</span>
+                          <span className="text-gray-600">{t('commentsView.videoLabel')}:</span>
                           <span className="font-medium text-gray-900 truncate">{comment.adset}</span>
                         </div>
                       )}
@@ -1042,7 +1075,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                 onClick={() => lightMode ? setLightPage(p => p - 1) : setCurrentPage(p => p - 1)}
                 className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                Anterior
+                {t('commentsView.previousPage')}
               </button>
 
               {Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -1076,7 +1109,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                 onClick={() => lightMode ? setLightPage(p => p + 1) : setCurrentPage(p => p + 1)}
                 className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                Siguiente
+                {t('commentsView.nextPage')}
               </button>
             </div>
           )}
@@ -1087,7 +1120,9 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col animate-in fade-in zoom-in duration-200">
             <div className="flex-shrink-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">Detalles del Post #{selectedComment.request_id}</h2>
+              <h2 className="text-2xl font-bold text-gray-900">
+                {t('commentsView.modalTitle', { id: String(selectedComment.request_id) })}
+              </h2>
               <button
                 onClick={handleCloseModal}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -1101,16 +1136,16 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                 <div className="flex items-center gap-3">
                   <Tag className="w-6 h-6 text-primary" />
                   <div>
-                    <p className="text-xs text-gray-500">Vertical</p>
+                    <p className="text-xs text-gray-500">{t('commentsView.modalVertical')}</p>
                     <p className="text-lg font-semibold text-gray-900">
-                      {selectedComment.vertical || 'No vertical'}
+                      {selectedComment.vertical || t('commentsView.missingVertical')}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-gray-500">
                   <Calendar className="w-4 h-4" />
                   <span className="text-sm">
-                    {new Date(selectedComment.created_at).toLocaleDateString('es-ES', {
+                    {new Date(selectedComment.created_at).toLocaleDateString(locale, {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric'
@@ -1127,10 +1162,10 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                         <User className="w-5 h-5 text-gray-600 mt-1 flex-shrink-0" />
                         <div className="flex-1">
                           <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-                            Media Buyer
+                            {t('commentsView.modalMediaBuyer')}
                           </p>
                           <p className="text-base font-medium text-gray-900">
-                            {selectedComment.media_buyer || 'N/A'}
+                            {selectedComment.media_buyer || t('commentsView.notAvailable')}
                           </p>
                         </div>
                       </div>
@@ -1141,10 +1176,10 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                         <User className="w-5 h-5 text-gray-600 mt-1 flex-shrink-0" />
                         <div className="flex-1">
                           <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-                            Customer Service Agent
+                            {t('commentsView.modalCustomerServiceAgent')}
                           </p>
                           <p className="text-base font-medium text-gray-900">
-                            {selectedComment.agente_customer_service || 'N/A'}
+                            {selectedComment.agente_customer_service || t('commentsView.notAvailable')}
                           </p>
                         </div>
                       </div>
@@ -1158,7 +1193,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                           <Tag className="w-5 h-5 text-gray-600 mt-1 flex-shrink-0" />
                           <div className="flex-1">
                             <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-                              Idioma
+                              {t('commentsView.modalLanguage')}
                             </p>
                             <p className="text-base font-medium text-gray-900">
                               {selectedComment.language}
@@ -1169,10 +1204,10 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                           <Tag className="w-5 h-5 text-gray-600 mt-1 flex-shrink-0" />
                           <div className="flex-1">
                             <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-                              Tipo de post
+                              {t('commentsView.modalPostType')}
                             </p>
                             <p className="text-base font-medium text-gray-900 capitalize">
-                              {selectedComment.media_type || 'N/A'}
+                              {selectedComment.media_type || t('commentsView.notAvailable')}
                             </p>
                           </div>
                         </div>
@@ -1186,7 +1221,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                         <Tag className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
                         <div className="flex-1">
                           <p className="text-xs font-medium text-gray-900 uppercase tracking-wide mb-2">
-                            Video
+                            {t('commentsView.modalVideo')}
                           </p>
                           <p className="text-base font-medium text-gray-900">
                             {selectedComment.adset}
@@ -1202,7 +1237,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                         <ExternalLink className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium text-gray-900 uppercase tracking-wide mb-2">
-                            URL
+                            {t('commentsView.modalUrl')}
                           </p>
                           <a
                             href={selectedComment.url.startsWith('http') ? selectedComment.url : `https://${selectedComment.url}`}
@@ -1222,7 +1257,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                   <div className="flex-shrink-0 hidden md:block">
                     <img
                       src={Array.isArray(selectedComment.thumbnail_urls) ? selectedComment.thumbnail_urls[0] : selectedComment.thumbnail_urls}
-                      alt="Video Thumbnail"
+                      alt={t('commentsView.modalThumbnailAlt')}
                       className="w-48 h-48 object-cover rounded-lg border border-gray-200"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = 'none';
@@ -1238,11 +1273,11 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                     <FileText className="w-5 h-5 text-gray-600 flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                        Script
+                        {t('commentsView.modalScript')}
                       </p>
                       {selectedComment.script_updated_at && (
                         <p className="text-xs text-gray-400 mt-1">
-                          Actualizado: {formatDate(selectedComment.script_updated_at)}
+                          {t('commentsView.updatedLabel')}: {formatDate(selectedComment.script_updated_at)}
                         </p>
                       )}
                     </div>
@@ -1252,27 +1287,27 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                       onClick={handleRegenerateScript}
                       disabled={regeneratingScript}
                       className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-primary hover:text-primary-hover hover:bg-primary-soft rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Re-generar script"
+                      title={t('commentsView.regenerateScript')}
                     >
                       <RefreshCw className={`w-4 h-4 ${regeneratingScript ? 'animate-spin' : ''}`} />
-                      Re-generar
+                      {t('commentsView.regenerate')}
                     </button>
                     {selectedComment.script && (
                       <>
                         <button
                           onClick={() => copyToClipboard(selectedComment.script!, 'script')}
                           className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded-md transition-colors"
-                          title="Copiar script"
+                          title={t('commentsView.copyScript')}
                         >
                           {copiedId === 'script' ? (
                             <>
                               <Check className="w-4 h-4 text-green-600" />
-                              Copiado
+                              {t('commentsView.copied')}
                             </>
                           ) : (
                             <>
                               <Copy className="w-4 h-4" />
-                              Copiar
+                              {t('commentsView.copy')}
                             </>
                           )}
                         </button>
@@ -1283,12 +1318,12 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                           {scriptExpanded ? (
                             <>
                               <ChevronUp className="w-4 h-4" />
-                              Colapsar
+                              {t('commentsView.collapse')}
                             </>
                           ) : (
                             <>
                               <ChevronDown className="w-4 h-4" />
-                              Expandir
+                              {t('commentsView.expand')}
                             </>
                           )}
                         </button>
@@ -1309,7 +1344,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                   </div>
                 ) : (
                   <div className="text-center py-6">
-                    <p className="text-sm text-gray-500">No hay script todavía</p>
+                    <p className="text-sm text-gray-500">{t('commentsView.noScriptYet')}</p>
                   </div>
                 )}
               </div>
@@ -1320,24 +1355,24 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                     <div className="flex items-center gap-3">
                       <MessageSquare className="w-5 h-5 text-accent flex-shrink-0" />
                       <p className="text-xs font-medium text-gray-900 uppercase tracking-wide">
-                        Comentarios Generados
+                        {t('commentsView.generatedCommentsTitle')}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => copyToClipboard(selectedComment.Comentarios!, 'comentarios')}
                         className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-accent hover:text-accent-hover hover:bg-accent-soft-border rounded-md transition-colors"
-                        title="Copiar comentarios"
+                        title={t('commentsView.copyComments')}
                       >
                         {copiedId === 'comentarios' ? (
                           <>
                             <Check className="w-4 h-4 text-green-600" />
-                            Copiado
+                            {t('commentsView.copied')}
                           </>
                         ) : (
                           <>
                             <Copy className="w-4 h-4" />
-                            Copiar
+                            {t('commentsView.copy')}
                           </>
                         )}
                       </button>
@@ -1348,12 +1383,12 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                         {commentsExpanded ? (
                           <>
                             <ChevronUp className="w-4 h-4" />
-                            Colapsar
+                            {t('commentsView.collapse')}
                           </>
                         ) : (
                           <>
                             <ChevronDown className="w-4 h-4" />
-                            Expandir
+                            {t('commentsView.expand')}
                           </>
                         )}
                       </button>
@@ -1375,7 +1410,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
               {loadingAIComments && (
                 <div className="bg-gray-50 rounded-lg p-8 text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                  <p className="text-sm text-gray-600 mt-3">Cargando comentarios AI...</p>
+                  <p className="text-sm text-gray-600 mt-3">{t('commentsView.loadingAiComments')}</p>
                 </div>
               )}
 
@@ -1384,7 +1419,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                   <div className="border-t border-gray-200 pt-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                       <Sparkles className="w-5 h-5 text-primary" />
-                      Comentarios Generados por IA
+                      {t('commentsView.aiGeneratedCommentsTitle')}
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1392,7 +1427,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                         <div className="flex items-center justify-between mb-3">
                           <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                             <Bot className="w-4 h-4 text-green-600" />
-                            Gemini Comments ({geminiComments.length})
+                            {t('commentsView.geminiCommentsTitle')} ({geminiComments.length})
                           </h4>
                           {geminiComments.length > 0 && (
                             <button
@@ -1403,17 +1438,17 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                                 copyToClipboard(allComments, 'all-gemini');
                               }}
                               className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-700 hover:text-green-900 hover:bg-green-100 rounded-md transition-colors"
-                              title="Copiar todos los comentarios de Gemini"
+                              title={t('commentsView.copyAllGemini')}
                             >
                               {copiedId === 'all-gemini' ? (
                                 <>
                                   <Check className="w-3.5 h-3.5" />
-                                  Copiado
+                                  {t('commentsView.copied')}
                                 </>
                               ) : (
                                 <>
                                   <Copy className="w-3.5 h-3.5" />
-                                  Copiar todos
+                                  {t('commentsView.copyAll')}
                                 </>
                               )}
                             </button>
@@ -1422,7 +1457,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                         <div className="space-y-3">
                           {geminiComments.length === 0 ? (
                             <div className="bg-gray-50 rounded-lg p-4 text-center text-sm text-gray-500">
-                              No hay comentarios de Gemini
+                              {t('commentsView.noGeminiComments')}
                             </div>
                           ) : (
                             geminiComments.map((comment) => (
@@ -1438,7 +1473,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                                     <button
                                       onClick={() => copyToClipboard(comment.comment_content || '', `gemini-${comment.id}`)}
                                       className="p-1 hover:bg-green-200 rounded transition-colors"
-                                      title="Copiar comentario"
+                                      title={t('commentsView.copyComment')}
                                     >
                                       {copiedId === `gemini-${comment.id}` ? (
                                         <Check className="w-3.5 h-3.5 text-green-700" />
@@ -1447,7 +1482,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                                       )}
                                     </button>
                                     <span className="text-xs text-green-600">
-                                      {new Date(comment.created_at).toLocaleDateString('es-ES', {
+                                      {new Date(comment.created_at).toLocaleDateString(locale, {
                                         month: 'short',
                                         day: 'numeric',
                                         hour: '2-digit',
@@ -1457,7 +1492,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                                   </div>
                                 </div>
                                 <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-                                  {comment.comment_content || 'Sin comentario'}
+                                  {comment.comment_content || t('commentsView.noComment')}
                                 </p>
                               </div>
                             ))
@@ -1468,7 +1503,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                             className="w-full mt-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-2.5 px-4 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <Sparkles className="w-4 h-4" />
-                            {regeneratingComments ? 'Generando...' : 'Generar nuevos comentarios'}
+                            {regeneratingComments ? t('commentsView.generating') : t('commentsView.generateNewComments')}
                           </button>
                         </div>
                       </div>
@@ -1477,7 +1512,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                         <div className="flex items-center justify-between mb-3">
                           <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                             <Bot className="w-4 h-4 text-purple-600" />
-                            GPT Comments ({gptComments.length})
+                            {t('commentsView.gptCommentsTitle')} ({gptComments.length})
                           </h4>
                           {gptComments.length > 0 && (
                             <button
@@ -1488,17 +1523,17 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                                 copyToClipboard(allComments, 'all-gpt');
                               }}
                               className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-700 hover:text-purple-900 hover:bg-purple-100 rounded-md transition-colors"
-                              title="Copiar todos los comentarios de GPT"
+                              title={t('commentsView.copyAllGpt')}
                             >
                               {copiedId === 'all-gpt' ? (
                                 <>
                                   <Check className="w-3.5 h-3.5" />
-                                  Copiado
+                                  {t('commentsView.copied')}
                                 </>
                               ) : (
                                 <>
                                   <Copy className="w-3.5 h-3.5" />
-                                  Copiar todos
+                                  {t('commentsView.copyAll')}
                                 </>
                               )}
                             </button>
@@ -1507,7 +1542,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                         <div className="space-y-3">
                           {gptComments.length === 0 ? (
                             <div className="bg-gray-50 rounded-lg p-4 text-center text-sm text-gray-500">
-                              No hay comentarios de GPT
+                              {t('commentsView.noGptComments')}
                             </div>
                           ) : (
                             gptComments.map((comment) => (
@@ -1523,7 +1558,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                                     <button
                                       onClick={() => copyToClipboard(comment.comment_content || '', `gpt-${comment.id}`)}
                                       className="p-1 hover:bg-purple-200 rounded transition-colors"
-                                      title="Copiar comentario"
+                                      title={t('commentsView.copyComment')}
                                     >
                                       {copiedId === `gpt-${comment.id}` ? (
                                         <Check className="w-3.5 h-3.5 text-purple-700" />
@@ -1532,7 +1567,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                                       )}
                                     </button>
                                     <span className="text-xs text-purple-600">
-                                      {new Date(comment.created_at).toLocaleDateString('es-ES', {
+                                      {new Date(comment.created_at).toLocaleDateString(locale, {
                                         month: 'short',
                                         day: 'numeric',
                                         hour: '2-digit',
@@ -1542,7 +1577,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                                   </div>
                                 </div>
                                 <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-                                  {comment.comment_content || 'Sin comentario'}
+                                  {comment.comment_content || t('commentsView.noComment')}
                                 </p>
                               </div>
                             ))
@@ -1553,7 +1588,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                             className="w-full mt-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2.5 px-4 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <Sparkles className="w-4 h-4" />
-                            {regeneratingGptComments ? 'Generando...' : 'Generar nuevos comentarios'}
+                            {regeneratingGptComments ? t('commentsView.generating') : t('commentsView.generateNewComments')}
                           </button>
                         </div>
                       </div>
@@ -1562,7 +1597,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                         <div className="flex items-center justify-between mb-3">
                           <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                             <Bot className="w-4 h-4 text-orange-600" />
-                            Claude Comments ({claudeComments.length})
+                            {t('commentsView.claudeCommentsTitle')} ({claudeComments.length})
                           </h4>
                           {claudeComments.length > 0 && (
                             <button
@@ -1573,17 +1608,17 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                                 copyToClipboard(allComments, 'all-claude');
                               }}
                               className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-orange-700 hover:text-orange-900 hover:bg-orange-100 rounded-md transition-colors"
-                              title="Copiar todos los comentarios de Claude"
+                              title={t('commentsView.copyAllClaude')}
                             >
                               {copiedId === 'all-claude' ? (
                                 <>
                                   <Check className="w-3.5 h-3.5" />
-                                  Copiado
+                                  {t('commentsView.copied')}
                                 </>
                               ) : (
                                 <>
                                   <Copy className="w-3.5 h-3.5" />
-                                  Copiar todos
+                                  {t('commentsView.copyAll')}
                                 </>
                               )}
                             </button>
@@ -1592,7 +1627,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                         <div className="space-y-3">
                           {claudeComments.length === 0 ? (
                             <div className="bg-gray-50 rounded-lg p-4 text-center text-sm text-gray-500">
-                              No hay comentarios de Claude
+                              {t('commentsView.noClaudeComments')}
                             </div>
                           ) : (
                             claudeComments.map((comment) => (
@@ -1608,7 +1643,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                                     <button
                                       onClick={() => copyToClipboard(comment.comment_content || '', `claude-${comment.id}`)}
                                       className="p-1 hover:bg-orange-200 rounded transition-colors"
-                                      title="Copiar comentario"
+                                      title={t('commentsView.copyComment')}
                                     >
                                       {copiedId === `claude-${comment.id}` ? (
                                         <Check className="w-3.5 h-3.5 text-orange-700" />
@@ -1617,7 +1652,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                                       )}
                                     </button>
                                     <span className="text-xs text-orange-600">
-                                      {new Date(comment.created_at).toLocaleDateString('es-ES', {
+                                      {new Date(comment.created_at).toLocaleDateString(locale, {
                                         month: 'short',
                                         day: 'numeric',
                                         hour: '2-digit',
@@ -1627,7 +1662,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                                   </div>
                                 </div>
                                 <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-                                  {comment.comment_content || 'Sin comentario'}
+                                  {comment.comment_content || t('commentsView.noComment')}
                                 </p>
                               </div>
                             ))
@@ -1638,7 +1673,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                             className="w-full mt-3 bg-gradient-to-r from-accent to-accent-hover text-white py-2.5 px-4 rounded-lg hover:from-accent-hover hover:to-accent transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <Sparkles className="w-4 h-4" />
-                            {regeneratingClaudeComments ? 'Generando...' : 'Generar nuevos comentarios'}
+                            {regeneratingClaudeComments ? t('commentsView.generating') : t('commentsView.generateNewComments')}
                           </button>
                         </div>
                       </div>
@@ -1653,7 +1688,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                 onClick={handleCloseModal}
                 className="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary-hover transition-colors font-medium"
               >
-                Cerrar
+                {t('commentsView.close')}
               </button>
             </div>
           </div>
@@ -1669,18 +1704,18 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
               </div>
 
               <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                ¡Solicitud Enviada!
+                {t('commentsView.requestSentTitle')}
               </h3>
 
               <p className="text-gray-600 mb-6 leading-relaxed">
-                Se están generando nuevos comentarios de Gemini para este script. Por favor, espere unos minutos y vuelva a consultar.
+                {t('commentsView.geminiSuccessDescription')}
               </p>
 
               <button
                 onClick={handleSuccessModalClose}
                 className="w-full bg-gradient-to-r from-primary to-primary-hover text-white py-3 px-6 rounded-lg hover:from-primary-hover hover:to-primary transition-all font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                Entendido
+                {t('commentsView.understood')}
               </button>
             </div>
           </div>
@@ -1696,18 +1731,18 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
               </div>
 
               <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                ¡Solicitud Enviada!
+                {t('commentsView.requestSentTitle')}
               </h3>
 
               <p className="text-gray-600 mb-6 leading-relaxed">
-                Se están generando nuevos comentarios de GPT para este script. Por favor, espere unos minutos y vuelva a consultar.
+                {t('commentsView.gptSuccessDescription')}
               </p>
 
               <button
                 onClick={handleGptSuccessModalClose}
                 className="w-full bg-gradient-to-r from-primary to-primary-hover text-white py-3 px-6 rounded-lg hover:from-primary-hover hover:to-primary transition-all font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                Entendido
+                {t('commentsView.understood')}
               </button>
             </div>
           </div>
@@ -1723,18 +1758,18 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
               </div>
 
               <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                ¡Solicitud Enviada!
+                {t('commentsView.requestSentTitle')}
               </h3>
 
               <p className="text-gray-600 mb-6 leading-relaxed">
-                Se están generando nuevos comentarios de Claude para este script. Por favor, espere unos minutos y vuelva a consultar.
+                {t('commentsView.claudeSuccessDescription')}
               </p>
 
               <button
                 onClick={handleClaudeSuccessModalClose}
                 className="w-full bg-gradient-to-r from-primary to-primary-hover text-white py-3 px-6 rounded-lg hover:from-primary-hover hover:to-primary transition-all font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                Entendido
+                {t('commentsView.understood')}
               </button>
             </div>
           </div>
@@ -1750,18 +1785,18 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
               </div>
 
               <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                ¡Solicitud Enviada!
+                {t('commentsView.requestSentTitle')}
               </h3>
 
               <p className="text-gray-600 mb-6 leading-relaxed">
-                Se está regenerando el script para este post. Por favor, espere unos minutos y vuelva a consultar.
+                {t('commentsView.scriptSuccessDescription')}
               </p>
 
               <button
                 onClick={handleScriptSuccessModalClose}
                 className="w-full bg-gradient-to-r from-primary to-primary-hover text-white py-3 px-6 rounded-lg hover:from-primary-hover hover:to-primary transition-all font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                Entendido
+                {t('commentsView.understood')}
               </button>
             </div>
           </div>
@@ -1770,4 +1805,5 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
     </div>
   );
 }
+
 

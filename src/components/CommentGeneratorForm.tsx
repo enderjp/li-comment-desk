@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Loader2, Send, AlertCircle, CheckCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/useAuth';
+import { useLanguage } from '../contexts/useLanguage';
 import { webhookUrls } from '../lib/webhooks';
 
 interface FormData {
@@ -32,8 +33,14 @@ interface CommentGeneratorFormProps {
   onNavigateToComments: (adset: string) => void;
 }
 
+const CONTENT_LANGUAGE_OPTIONS = [
+  { value: 'Ingl\u00E9s', labelKey: 'generator.englishOption' },
+  { value: 'Espa\u00F1ol', labelKey: 'generator.spanishOption' },
+] as const;
+
 export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorFormProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState<FormData>({
     agentCS: '',
     mediaBuyer: '',
@@ -77,13 +84,13 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
       console.log('Agents loaded:', data);
       setAgents(data || []);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error loading agents';
+      const errorMessage = err instanceof Error ? err.message : t('generator.loadingAgentsError');
       setAgentsError(errorMessage);
       console.error('Error fetching agents:', err);
     } finally {
       setLoadingAgents(false);
     }
-  }, []);
+  }, [t]);
 
   const fetchMediaBuyers = useCallback(async () => {
     try {
@@ -103,13 +110,14 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
       console.log('Media buyers loaded:', data);
       setMediaBuyers(data || []);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error loading media buyers';
+      const errorMessage =
+        err instanceof Error ? err.message : t('generator.loadingMediaBuyersError');
       setMediaBuyersError(errorMessage);
       console.error('Error fetching media buyers:', err);
     } finally {
       setLoadingMediaBuyers(false);
     }
-  }, []);
+  }, [t]);
 
   const fetchVerticals = useCallback(async () => {
     try {
@@ -129,13 +137,13 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
       console.log('Verticals loaded:', data);
       setVerticals(data || []);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error loading verticals';
+      const errorMessage = err instanceof Error ? err.message : t('generator.loadingVerticalsError');
       setVerticalsError(errorMessage);
       console.error('Error fetching verticals:', err);
     } finally {
       setLoadingVerticals(false);
     }
-  }, []);
+  }, [t]);
 
   const fetchUserRole = useCallback(async () => {
     if (!user?.id) return;
@@ -167,20 +175,24 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
   }, [fetchAgents, fetchMediaBuyers, fetchUserRole, fetchVerticals]);
 
   const validateUrls = (urlsText: string): { valid: boolean; error?: string } => {
-    const urls = urlsText.split('\n').map(url => url.trim()).filter(url => url.length > 0);
+    const urls = urlsText
+      .split('\n')
+      .map((url) => url.trim())
+      .filter((url) => url.length > 0);
 
     if (urls.length === 0) {
-      return { valid: false, error: 'Debe ingresar al menos una URL' };
+      return { valid: false, error: t('generator.minOneUrl') };
     }
 
     const urlPattern = /^(https?:\/\/)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/[^\s]*)?$/;
 
     for (let i = 0; i < urls.length; i++) {
       const url = urls[i];
+
       if (!urlPattern.test(url)) {
         return {
           valid: false,
-          error: `URL inválida en la línea ${i + 1}: "${url}". Debe comenzar con http:// o https://`
+          error: t('generator.invalidUrlLine', { line: String(i + 1), url }),
         };
       }
     }
@@ -212,8 +224,8 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
         language: formData.language,
         adset: formData.adset,
         urls: formData.urls,
-        visibility: visibility,
-        mediaType: mediaType,
+        visibility,
+        mediaType,
       };
 
       console.log('Sending payload:', payload);
@@ -223,7 +235,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
         mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
         body: JSON.stringify(payload),
       });
@@ -250,7 +262,6 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
         setShowDuplicateModal(true);
       } else if (code === '201') {
         console.log('Keeping processing modal open');
-        // El modal de procesamiento ya está mostrándose
       }
 
       setFormData({
@@ -265,14 +276,14 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
       console.error('Error submitting form:', error);
       setShowProcessingModal(false);
 
-      let errorMessage = 'Error al enviar el formulario. ';
+      let errorMessage = t('generator.submitError');
 
       if (error instanceof TypeError && error.message === 'Failed to fetch') {
-        errorMessage += 'No se pudo conectar con el servidor. Verifica tu conexión a internet o que el webhook esté activo.';
+        errorMessage += t('generator.submitNetworkError');
       } else if (error instanceof Error) {
         errorMessage += error.message;
       } else {
-        errorMessage += 'Por favor, intenta de nuevo.';
+        errorMessage += t('generator.submitRetry');
       }
 
       alert(errorMessage);
@@ -284,17 +295,13 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
   return (
     <div className="max-w-3xl mx-auto">
       <div className="bg-[#FFFFFF] rounded-xl shadow-sm border border-[#D4AE5D]/30 p-8">
-        <h2 className="text-[2rem] font-bold text-accent-gram mb-2">
-          Generador de comentarios para Social Media posts
-        </h2>
-        <p className="text-[#517267] mb-8">
-          Complete el formulario para generar comentarios personalizados
-        </p>
+        <h2 className="text-[2rem] font-bold text-accent-gram mb-2">{t('generator.title')}</h2>
+        <p className="text-[#517267] mb-8">{t('generator.subtitle')}</p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="agentCS" className="block text-sm font-medium text-primary mb-2">
-              Agente CS
+              {t('generator.agent')}
             </label>
             {agentsError ? (
               <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 px-4 py-3 rounded-lg">
@@ -312,7 +319,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                   className="w-full px-4 py-2.5 border border-[#D4AE5D]/40 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-[#fffdf7] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="">
-                    {loadingAgents ? 'Cargando agentes...' : 'Seleccionar agente...'}
+                    {loadingAgents ? t('generator.loadingAgents') : t('generator.selectAgent')}
                   </option>
                   {agents.map((agent) => (
                     <option key={agent.id} value={agent.agent_name}>
@@ -321,9 +328,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                   ))}
                 </select>
                 {!loadingAgents && agents.length === 0 && !agentsError && (
-                  <p className="text-xs text-accent mt-1">
-                    No hay agentes disponibles en la base de datos
-                  </p>
+                  <p className="text-xs text-accent mt-1">{t('generator.noAgents')}</p>
                 )}
               </>
             )}
@@ -331,7 +336,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
 
           <div>
             <label htmlFor="mediaBuyer" className="block text-sm font-medium text-primary mb-2">
-              Media Buyer
+              {t('generator.mediaBuyer')}
             </label>
             {mediaBuyersError ? (
               <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 px-4 py-3 rounded-lg">
@@ -349,7 +354,9 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                   className="w-full px-4 py-2.5 border border-[#D4AE5D]/40 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-[#fffdf7] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="">
-                    {loadingMediaBuyers ? 'Cargando media buyers...' : 'Seleccionar media buyer...'}
+                    {loadingMediaBuyers
+                      ? t('generator.loadingMediaBuyers')
+                      : t('generator.selectMediaBuyer')}
                   </option>
                   {mediaBuyers.map((buyer) => (
                     <option key={buyer.id} value={buyer.media_buyer_name}>
@@ -358,9 +365,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                   ))}
                 </select>
                 {!loadingMediaBuyers && mediaBuyers.length === 0 && !mediaBuyersError && (
-                  <p className="text-xs text-accent mt-1">
-                    No hay media buyers disponibles en la base de datos
-                  </p>
+                  <p className="text-xs text-accent mt-1">{t('generator.noMediaBuyers')}</p>
                 )}
               </>
             )}
@@ -368,7 +373,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
 
           <div>
             <label htmlFor="vertical" className="block text-sm font-medium text-primary mb-2">
-              Vertical
+              {t('generator.vertical')}
             </label>
             {verticalsError ? (
               <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 px-4 py-3 rounded-lg">
@@ -386,7 +391,9 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                   className="w-full px-4 py-2.5 border border-[#D4AE5D]/40 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-[#fffdf7] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="">
-                    {loadingVerticals ? 'Cargando verticals...' : 'Seleccionar vertical...'}
+                    {loadingVerticals
+                      ? t('generator.loadingVerticals')
+                      : t('generator.selectVertical')}
                   </option>
                   {verticals.map((vertical) => (
                     <option key={vertical.id} value={vertical.vertical_name}>
@@ -395,9 +402,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                   ))}
                 </select>
                 {!loadingVerticals && verticals.length === 0 && !verticalsError && (
-                  <p className="text-xs text-accent mt-1">
-                    No hay verticals disponibles en la base de datos
-                  </p>
+                  <p className="text-xs text-accent mt-1">{t('generator.noVerticals')}</p>
                 )}
               </>
             )}
@@ -405,7 +410,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
 
           <div>
             <label htmlFor="language" className="block text-sm font-medium text-primary mb-2">
-              Idioma
+              {t('generator.language')}
             </label>
             <select
               id="language"
@@ -414,16 +419,19 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
               required
               className="w-full px-4 py-2.5 border border-[#D4AE5D]/40 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-[#fffdf7]"
             >
-              <option value="">Seleccionar idioma...</option>
-              <option value="Inglés">Inglés</option>
-              <option value="Español">Español</option>
+              <option value="">{t('generator.selectLanguage')}</option>
+              {CONTENT_LANGUAGE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {t(option.labelKey)}
+                </option>
+              ))}
             </select>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-2">
               <label htmlFor="adset" className="block text-sm font-medium text-primary">
-                {mediaType === 'video' ? 'Video' : 'Imagen'}
+                {mediaType === 'video' ? t('generator.video') : t('generator.image')}
               </label>
               <div className="flex items-center gap-2">
                 <button
@@ -435,7 +443,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                       : 'bg-[#F8F4E7] text-[#294038] border-[#E6D5AC] hover:bg-[#E8D9B5] hover:border-[#D4AE5D]'
                   }`}
                 >
-                  Video
+                  {t('generator.video')}
                 </button>
                 <button
                   type="button"
@@ -446,7 +454,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                       : 'bg-[#F8F4E7] text-[#294038] border-[#E6D5AC] hover:bg-[#E8D9B5] hover:border-[#D4AE5D]'
                   }`}
                 >
-                  Imagen
+                  {t('generator.image')}
                 </button>
               </div>
             </div>
@@ -455,14 +463,18 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
               id="adset"
               value={formData.adset}
               onChange={(e) => setFormData({ ...formData, adset: e.target.value })}
-              placeholder={mediaType === 'video' ? 'Ingrese el nombre del video' : 'Ingrese el nombre del post/imagen'}
+              placeholder={
+                mediaType === 'video'
+                  ? t('generator.videoPlaceholder')
+                  : t('generator.imagePlaceholder')
+              }
               className="w-full px-4 py-2.5 border border-[#D4AE5D]/40 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
             />
           </div>
 
           <div>
             <label htmlFor="urls" className="block text-sm font-medium text-primary mb-2">
-              URLs
+              {t('generator.urls')}
             </label>
             <textarea
               id="urls"
@@ -473,7 +485,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
               }}
               required
               rows={6}
-              placeholder="Pegue las URLs aquí, una por línea&#10;https://example.com/post1&#10;https://example.com/post2&#10;https://example.com/post3"
+              placeholder={t('generator.urlsPlaceholder')}
               className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none font-mono text-sm ${
                 urlError ? 'border-red-300 bg-red-50' : 'border-[#D4AE5D]/40'
               }`}
@@ -484,9 +496,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                 <span>{urlError}</span>
               </div>
             ) : (
-              <p className="text-xs text-[#517267] mt-1">
-                Ingrese una URL por línea. Cada URL debe comenzar con http:// o https://
-              </p>
+              <p className="text-xs text-[#517267] mt-1">{t('generator.urlsHelp')}</p>
             )}
           </div>
 
@@ -498,12 +508,12 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
             {loading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Generando comentarios...
+                {t('generator.submitting')}
               </>
             ) : (
               <>
                 <Send className="w-5 h-5" />
-                Generar comentarios
+                {t('generator.submit')}
               </>
             )}
           </button>
@@ -518,16 +528,14 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                 <CheckCircle className="h-8 w-8 text-[#294038]" />
               </div>
               <h3 className="text-xl font-semibold text-primary mb-2">
-                Procesando videos
+                {t('generator.processingTitle')}
               </h3>
-              <p className="text-[#517267] mb-6">
-                Los videos están siendo procesados, por favor espere unos minutos mientras se generan los comentarios
-              </p>
+              <p className="text-[#517267] mb-6">{t('generator.processingDescription')}</p>
               <button
                 onClick={() => setShowProcessingModal(false)}
                 className="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary-hover transition-colors font-medium"
               >
-                Listo
+                {t('generator.ready')}
               </button>
             </div>
           </div>
@@ -542,10 +550,10 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                 <AlertCircle className="h-8 w-8 text-[#294038]" />
               </div>
               <h3 className="text-xl font-semibold text-primary mb-2">
-                Adset duplicado
+                {t('generator.duplicateTitle')}
               </h3>
               <p className="text-[#517267] mb-6">
-                Este adset <span className="font-semibold text-primary">"{currentAdset}"</span> ya tiene comentarios generados en la base de datos.
+                {t('generator.duplicateDescription', { currentAdset })}
               </p>
               <div className="flex gap-3">
                 <button
@@ -555,13 +563,13 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
                   }}
                   className="flex-1 bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary-hover transition-colors font-medium"
                 >
-                  Ver comentarios
+                  {t('generator.viewComments')}
                 </button>
                 <button
                   onClick={() => setShowDuplicateModal(false)}
                   className="flex-1 bg-[#D9D9D9] text-[#294038] py-3 px-4 rounded-lg hover:bg-[#bfbfbf] transition-colors font-medium"
                 >
-                  Salir
+                  {t('generator.exit')}
                 </button>
               </div>
             </div>

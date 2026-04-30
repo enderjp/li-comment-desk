@@ -1,14 +1,57 @@
 import { useState, useRef, useEffect } from 'react';
 import { Calendar, ChevronDown } from 'lucide-react';
 
+interface DateRangePickerLabels {
+  selectPeriod: string;
+  from: string;
+  until: string;
+  today: string;
+  yesterday: string;
+  last2Days: string;
+  thisWeek: string;
+  last7Days: string;
+  thisMonth: string;
+  last30Days: string;
+  customDates: string;
+  startDate: string;
+  endDate: string;
+  apply: string;
+}
+
 interface DateRangePickerProps {
   startDate: string;
   endDate: string;
   onStartDateChange: (date: string) => void;
   onEndDateChange: (date: string) => void;
+  labels?: DateRangePickerLabels;
+  locale?: string;
 }
 
-export function DateRangePicker({ startDate, endDate, onStartDateChange, onEndDateChange }: DateRangePickerProps) {
+const defaultLabels: DateRangePickerLabels = {
+  selectPeriod: 'Seleccionar periodo',
+  from: 'Desde',
+  until: 'Hasta',
+  today: 'Hoy',
+  yesterday: 'Ayer',
+  last2Days: 'Ultimos 2 dias',
+  thisWeek: 'Esta semana',
+  last7Days: 'Ultimos 7 dias',
+  thisMonth: 'Este mes',
+  last30Days: 'Ultimos 30 dias',
+  customDates: 'Fechas personalizadas',
+  startDate: 'Fecha inicio',
+  endDate: 'Fecha fin',
+  apply: 'Aplicar',
+};
+
+export function DateRangePicker({
+  startDate,
+  endDate,
+  onStartDateChange,
+  onEndDateChange,
+  labels = defaultLabels,
+  locale = 'es-ES',
+}: DateRangePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -24,21 +67,26 @@ export function DateRangePicker({ startDate, endDate, onStartDateChange, onEndDa
   }, []);
 
   const formatDateRange = () => {
-    if (!startDate && !endDate) return 'Seleccionar periodo';
+    if (!startDate && !endDate) return labels.selectPeriod;
 
     const formatDate = (dateStr: string) => {
       const date = new Date(dateStr);
-      return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      return date.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
     };
 
     if (startDate && endDate) {
       return `${formatDate(startDate)} - ${formatDate(endDate)}`;
-    } else if (startDate) {
-      return `Desde ${formatDate(startDate)}`;
-    } else if (endDate) {
-      return `Hasta ${formatDate(endDate)}`;
     }
-    return 'Seleccionar periodo';
+
+    if (startDate) {
+      return `${labels.from} ${formatDate(startDate)}`;
+    }
+
+    if (endDate) {
+      return `${labels.until} ${formatDate(endDate)}`;
+    }
+
+    return labels.selectPeriod;
   };
 
   const setToday = () => {
@@ -123,7 +171,7 @@ export function DateRangePicker({ startDate, endDate, onStartDateChange, onEndDa
       {isOpen && (
         <div className="absolute z-50 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200">
           <div className="p-4">
-            <h3 className="text-sm font-medium text-gray-900 mb-3">Seleccionar periodo</h3>
+            <h3 className="text-sm font-medium text-gray-900 mb-3">{labels.selectPeriod}</h3>
 
             <div className="space-y-1 mb-4">
               <button
@@ -131,61 +179,61 @@ export function DateRangePicker({ startDate, endDate, onStartDateChange, onEndDa
                 onClick={setToday}
                 className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-primary-soft rounded-lg transition-colors"
               >
-                Hoy
+                {labels.today}
               </button>
               <button
                 type="button"
                 onClick={setYesterday}
                 className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-primary-soft rounded-lg transition-colors"
               >
-                Ayer
+                {labels.yesterday}
               </button>
               <button
                 type="button"
                 onClick={setLast2Days}
                 className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-primary-soft rounded-lg transition-colors"
               >
-                Últimos 2 días
+                {labels.last2Days}
               </button>
               <button
                 type="button"
                 onClick={setThisWeek}
                 className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-primary-soft rounded-lg transition-colors"
               >
-                Esta semana
+                {labels.thisWeek}
               </button>
               <button
                 type="button"
                 onClick={setLast7Days}
                 className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-primary-soft rounded-lg transition-colors"
               >
-                Últimos 7 días
+                {labels.last7Days}
               </button>
               <button
                 type="button"
                 onClick={setThisMonth}
                 className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-primary-soft rounded-lg transition-colors"
               >
-                Este mes
+                {labels.thisMonth}
               </button>
               <button
                 type="button"
                 onClick={setLast30Days}
                 className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-primary-soft rounded-lg transition-colors"
               >
-                Últimos 30 días
+                {labels.last30Days}
               </button>
             </div>
 
             <div className="border-t border-gray-200 pt-4">
               <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
-                Fechas personalizadas
+                {labels.customDates}
               </h4>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                    Fecha inicio
+                    {labels.startDate}
                   </label>
                   <input
                     type="date"
@@ -196,7 +244,7 @@ export function DateRangePicker({ startDate, endDate, onStartDateChange, onEndDa
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                    Fecha fin
+                    {labels.endDate}
                   </label>
                   <input
                     type="date"
@@ -212,7 +260,7 @@ export function DateRangePicker({ startDate, endDate, onStartDateChange, onEndDa
                 onClick={applyCustomDates}
                 className="w-full mt-4 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover transition-colors"
               >
-                Aplicar
+                {labels.apply}
               </button>
             </div>
           </div>

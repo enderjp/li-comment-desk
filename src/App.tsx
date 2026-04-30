@@ -7,16 +7,20 @@ import { CommentGeneratorForm } from './components/CommentGeneratorForm';
 import { CommentsView } from './components/CommentsView';
 import { NotificationBell } from './components/NotificationBell';
 import { AdminPanel } from './components/AdminPanel';
+import { LanguageToggle } from './components/LanguageToggle';
+import { useLanguage } from './contexts/useLanguage';
 import { supabase } from './lib/supabase';
 import { Loader2, Zap } from 'lucide-react';
 
 function App() {
   const { user, loading } = useAuth();
+  const { t } = useLanguage();
   const [currentView, setCurrentView] = useState<'generator' | 'comments' | 'admin'>('generator');
   const [prefilterAdset, setPrefilterAdset] = useState<string>('');
   const [selectedRequestId, setSelectedRequestId] = useState<string>('');
   const [isConfirmPage, setIsConfirmPage] = useState(false);
   const [lightMode, setLightMode] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
 
   const isAdmin = userRole === 'admin';
@@ -91,9 +95,24 @@ function App() {
 
       <div className="flex-1 flex flex-col">
         <header className="bg-[#262626] border-b border-[#262626] px-8 py-4 flex justify-end items-center gap-3">
+          {import.meta.env.DEV && (
+            <button
+              type="button"
+              onClick={() => setDemoMode((current) => !current)}
+              title={demoMode ? 'Desactivar modo demo' : 'Activar modo demo con posts locales'}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all border ${
+                demoMode
+                  ? 'bg-primary text-white border-primary shadow-sm'
+                  : 'text-[#D4AE5D] border-[#D4AE5D]/50 hover:bg-[#D4AE5D]/10'
+              }`}
+            >
+              {demoMode ? 'Demo ON' : 'Demo OFF'}
+            </button>
+          )}
+          <LanguageToggle compact />
           <button
             onClick={() => setLightMode(!lightMode)}
-            title={lightMode ? 'Desactivar modo ligero' : 'Activar modo ligero para mejor rendimiento'}
+            title={lightMode ? t('app.loadingLightModeOn') : t('app.loadingLightModeOff')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all border ${
               lightMode
                 ? 'bg-accent text-white border-accent shadow-sm'
@@ -101,7 +120,7 @@ function App() {
             }`}
           >
             <Zap className="w-3.5 h-3.5" />
-            Modo Ligero
+            {t('app.lightMode')}
           </button>
           <NotificationBell
             onNavigateToRequest={(requestId) => {
@@ -133,6 +152,7 @@ function App() {
               prefilterAdset={prefilterAdset}
               selectedRequestId={selectedRequestId}
               lightMode={lightMode}
+              demoMode={demoMode}
               onClearPrefilter={() => {
                 setPrefilterAdset('');
                 setSelectedRequestId('');

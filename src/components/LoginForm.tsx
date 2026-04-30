@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { useAuth } from '../contexts/useAuth';
-import { Loader2, LogIn, Mail } from 'lucide-react';
+import { Loader2, Mail } from 'lucide-react';
 import logoLi from '../assets/logoli1.png';
+import { useAuth } from '../contexts/useAuth';
+import { useLanguage } from '../contexts/useLanguage';
+import { LanguageToggle } from './LanguageToggle';
 
 export function LoginForm() {
   const { signIn, signUp } = useAuth();
+  const { t } = useLanguage();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,7 +29,7 @@ export function LoginForm() {
         await signIn(email, password);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : t('login.genericError'));
     } finally {
       setLoading(false);
     }
@@ -34,27 +37,31 @@ export function LoginForm() {
 
   return (
     <div className="min-h-screen bg-black from-primary-soft to-slate-100 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-[#262626] rounded-xl shadow-lg p-8 border border-gray-400">
+      <div className="relative max-w-md w-full bg-[#262626] rounded-xl shadow-lg p-8 border border-gray-400">
+        <div className="absolute right-4 top-4">
+          <LanguageToggle compact />
+        </div>
+
         <div className="flex items-center justify-center mb-8">
-          <img 
+          <img
             src={logoLi}
-            alt="Leads Icon Logo" 
-            className="w-28 h-auto mb-4 object-contain hover:scale-105 transition-transform" 
+            alt="Leads Icon Logo"
+            className="w-28 h-auto mb-4 object-contain hover:scale-105 transition-transform"
           />
         </div>
 
         <h1 className="text-3xl font-bold text-center text-[#D4AE5D] mb-2">
-          Comment Desk
+          {t('common.appName')}
         </h1>
         <p className="text-center text-gray-300 mb-8">
-          {isSignUp ? 'Create your account' : 'Sign in to your account'}
+          {isSignUp ? t('login.subtitleSignUp') : t('login.subtitleSignIn')}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {isSignUp && (
             <div>
               <label htmlFor="fullName" className="block text-sm font-medium text-gray-100 mb-1">
-                Full Name
+                {t('login.fullName')}
               </label>
               <input
                 id="fullName"
@@ -63,14 +70,14 @@ export function LoginForm() {
                 onChange={(e) => setFullName(e.target.value)}
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="John Doe"
+                placeholder={t('login.fullNamePlaceholder')}
               />
             </div>
           )}
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-100 mb-1">
-              Email
+              {t('login.email')}
             </label>
             <input
               id="email"
@@ -79,13 +86,13 @@ export function LoginForm() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="you@example.com"
+              placeholder={t('login.emailPlaceholder')}
             />
           </div>
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-100 mb-1">
-              Password
+              {t('login.password')}
             </label>
             <input
               id="password"
@@ -95,7 +102,7 @@ export function LoginForm() {
               required
               minLength={6}
               className="w-full px-4 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="••••••••"
+              placeholder={t('login.passwordPlaceholder')}
             />
           </div>
 
@@ -108,15 +115,17 @@ export function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full font-bold font-['Gram'] uppercase border border-gray-300 bg-primary text-white text-2xl py-1.5 px-4 rounded-sm hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full font-bold font-['Gram'] uppercase border border-gray-500 bg-primary text-white text-2xl py-1.5 px-4 rounded-sm hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Please wait...
+                {t('login.pleaseWait')}
               </>
+            ) : isSignUp ? (
+              t('login.signUp')
             ) : (
-              isSignUp ? 'Sign Up' : 'Sign In'
+              t('login.signIn')
             )}
           </button>
         </form>
@@ -130,7 +139,7 @@ export function LoginForm() {
             }}
             className="text-sm text-[#D4AE5D] hover:text-[#F2D39A]"
           >
-            {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+            {isSignUp ? t('login.alreadyHaveAccount') : t('login.noAccount')}
           </button>
         </div>
       </div>
@@ -143,10 +152,10 @@ export function LoginForm() {
                 <Mail className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Verifica tu correo
+                {t('login.verifyTitle')}
               </h3>
               <p className="text-gray-600 mb-6">
-                Te hemos enviado un correo a <span className="font-semibold">{email}</span> para confirmar tu cuenta y terminar el registro.
+                {t('login.verifyDescription', { email })}
               </p>
               <button
                 onClick={() => {
@@ -158,7 +167,7 @@ export function LoginForm() {
                 }}
                 className="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary-hover transition-colors font-medium"
               >
-                Entendido
+                {t('login.confirm')}
               </button>
             </div>
           </div>
