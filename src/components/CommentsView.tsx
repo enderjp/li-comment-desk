@@ -1414,7 +1414,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                 </div>
               )}
 
-              {!loadingAIComments && (geminiComments.length > 0 || gptComments.length > 0 || claudeComments.length > 0) && (
+              {!loadingAIComments && (
                 <div className="space-y-6">
                   <div className="border-t border-gray-200 pt-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
