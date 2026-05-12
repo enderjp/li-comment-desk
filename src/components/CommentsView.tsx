@@ -492,6 +492,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         script: selectedComment.script || '',
         Language: selectedComment.language || '',
         PostId: selectedComment.id,
+        requestId: selectedComment.request_id,
         UserId: user?.id || '',
         vertical: selectedComment.vertical || ''
       };
@@ -535,6 +536,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         script: selectedComment.script || '',
         Language: selectedComment.language || '',
         PostId: selectedComment.id,
+         requestId: selectedComment.request_id,
         UserId: user?.id || '',
         vertical: selectedComment.vertical || ''
       };
@@ -578,6 +580,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         script: selectedComment.script || '',
         Language: selectedComment.language || '',
         PostId: selectedComment.id,
+         requestId: selectedComment.request_id,
         UserId: user?.id || '',
         vertical: selectedComment.vertical || ''
       };
