@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle2, Loader2, Shield, Upload } from 'lucide-react';
 import { useAuth } from '../contexts/useAuth';
 import { webhookUrls } from '../lib/webhooks';
+import { supabase } from '../lib/supabase';
 
 interface AdminPanelProps {
   isAdmin: boolean;
@@ -17,6 +18,46 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [status, setStatus] = useState<StatusMessage | null>(null);
+  const [errors, setErrors] = useState<any[]>([]);
+  const [loadingErrors, setLoadingErrors] = useState(false);
+
+  const fetchErrors = async () => {
+    setLoadingErrors(true);
+    try {
+      const { data, error } = await supabase
+        .from('errors')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(500);
+
+      if (error) {
+        console.error('Error fetching errors:', error);
+        setErrors([]);
+        return;
+      }
+
+      setErrors(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Unexpected error fetching errors:', err);
+      setErrors([]);
+    } finally {
+      setLoadingErrors(false);
+    }
+  };
+
+  const markProcessed = async (id: string) => {
+    try {
+      const { error } = await supabase.from('errors').update({ processed: true }).eq('id', id);
+      if (error) throw error;
+      await fetchErrors();
+    } catch (err) {
+      console.error('Error marking processed:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchErrors();
+  }, []);
 
   if (!isAdmin) {
     return (
@@ -180,6 +221,69 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
               )}
             </button>
           </form>
+        </div>
+
+        <div className="border border-gray-200 rounded-xl p-6 bg-gray-50 mt-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Url no procesados</h3>
+          <p className="text-sm text-gray-600 mb-4">Lista de URLs pendientes de ser procesadas (tabla `errors`).</p>
+
+          <div className="space-y-2">
+            {loadingErrors ? (
+              <p className="text-sm text-gray-500">Cargando...</p>
+            ) : errors.length === 0 ? (
+              <p className="text-sm text-gray-500">No hay URLs pendientes.</p>
+            ) : (
+              <div className="overflow-auto max-h-64">
+                <table className="w-full text-sm text-left">
+                  <thead>
+                    <tr className="text-gray-600">
+                      <th className="px-2 py-1">URL</th>
+                      <th className="px-2 py-1">Fecha</th>
+                      <th className="px-2 py-1">Procesada</th>
+                      <th className="px-2 py-1">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-gray-700">
+                    {errors.map((e) => (
+                      <tr key={e.id} className="border-t">
+                        <td className="px-2 py-2 max-w-[40%] truncate">{e.url ?? e.path ?? ''}</td>
+                        <td className="px-2 py-2">{e.created_at ? new Date(e.created_at).toLocaleString() : '-'}</td>
+                        <td className="px-2 py-2">{e.processed ? 'Sí' : 'No'}</td>
+                        <td className="px-2 py-2">
+                          {!e.processed && (
+                            <button
+                              onClick={() => markProcessed(e.id)}
+                              className="text-sm text-blue-600 hover:underline"
+                            >
+                              Marcar procesada
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <div className="flex gap-2 mt-3">
+              <button
+                type="button"
+                onClick={fetchErrors}
+                disabled={loadingErrors}
+                className="px-3 py-1.5 rounded-md bg-primary text-white disabled:opacity-60"
+              >
+                {loadingErrors ? 'Cargando...' : 'Refrescar'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setErrors([])}
+                className="px-3 py-1.5 rounded-md bg-gray-200 text-gray-700"
+              >
+                Limpiar
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
