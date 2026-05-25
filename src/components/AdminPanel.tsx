@@ -225,7 +225,7 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
 
         <div className="border border-gray-200 rounded-xl p-6 bg-gray-50 mt-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Url no procesados</h3>
-          <p className="text-sm text-gray-600 mb-4">Lista de URLs pendientes de ser procesadas (tabla `errors`).</p>
+          <p className="text-sm text-gray-600 mb-4">Lista de URLs pendientes de ser procesadas.</p>
 
           <div className="space-y-2">
             {loadingErrors ? (
@@ -237,8 +237,10 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
                 <table className="w-full text-sm text-left">
                   <thead>
                     <tr className="text-gray-600">
-                      <th className="px-2 py-1">URL</th>
                       <th className="px-2 py-1">Fecha</th>
+                      <th className="px-2 py-1">Agente de CS</th>
+                      <th className="px-2 py-1">URL</th>
+                      <th className="px-2 py-1">Adset</th>
                       <th className="px-2 py-1">Procesada</th>
                       <th className="px-2 py-1">Acciones</th>
                     </tr>
@@ -246,8 +248,10 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
                   <tbody className="text-gray-700">
                     {errors.map((e) => (
                       <tr key={e.id} className="border-t">
-                        <td className="px-2 py-2 max-w-[40%] truncate">{e.url ?? e.path ?? ''}</td>
                         <td className="px-2 py-2">{e.created_at ? new Date(e.created_at).toLocaleString() : '-'}</td>
+                        <td className="px-2 py-2">{e.agente_customer_service ?? '-'}</td>
+                        <td className="px-2 py-2 max-w-[30%] truncate">{e.url ?? '-'}</td>
+                        <td className="px-2 py-2">{e.adset ?? '-'}</td>
                         <td className="px-2 py-2">{e.processed ? 'Sí' : 'No'}</td>
                         <td className="px-2 py-2">
                           {!e.processed && (
