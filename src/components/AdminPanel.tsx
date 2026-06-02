@@ -13,13 +13,36 @@ type StatusMessage = {
   message: string;
 };
 
+interface ErrorRow {
+  id: string | number;
+  request_id?: number | null;
+  created_at?: string | null;
+  media_buyer?: string | null;
+  agente_customer_service?: string | null;
+  vertical?: string | null;
+  url?: string | null;
+  script?: string | null;
+  Comentarios?: string | null;
+  adset?: string | null;
+  language?: string | null;
+  script_updated_at?: string | null;
+  thumbnail_urls?: string[] | string | null;
+  visibility?: string | null;
+  media_type?: string | null;
+  processed?: boolean | null;
+  [key: string]: unknown;
+}
+
 export function AdminPanel({ isAdmin }: AdminPanelProps) {
   const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [status, setStatus] = useState<StatusMessage | null>(null);
-  const [errors, setErrors] = useState<any[]>([]);
+  const [errors, setErrors] = useState<ErrorRow[]>([]);
   const [loadingErrors, setLoadingErrors] = useState(false);
+  const [selectedErrorIds, setSelectedErrorIds] = useState<Array<string | number>>([]);
+  const [isReprocessing, setIsReprocessing] = useState(false);
+  const [reprocessStatus, setReprocessStatus] = useState<StatusMessage | null>(null);
 
   const fetchErrors = async () => {
     setLoadingErrors(true);
@@ -33,26 +56,115 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
       if (error) {
         console.error('Error fetching errors:', error);
         setErrors([]);
+        setSelectedErrorIds([]);
         return;
       }
 
-      setErrors(Array.isArray(data) ? data : []);
+      const safeRows = Array.isArray(data) ? (data as ErrorRow[]) : [];
+      setErrors(safeRows);
+      setSelectedErrorIds((previous) => {
+        const validIds = new Set(safeRows.map((row) => row.id));
+        return previous.filter((id) => validIds.has(id));
+      });
     } catch (err) {
       console.error('Unexpected error fetching errors:', err);
       setErrors([]);
+      setSelectedErrorIds([]);
     } finally {
       setLoadingErrors(false);
     }
   };
 
-  const markProcessed = async (id: string) => {
+  const sendReprocessRequest = async (row: ErrorRow) => {
+    const payload = {
+      ...row,
+      errorId: row.id,
+    };
+
+    const response = await fetch(webhookUrls.reprocessErrors, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `HTTP ${response.status}`);
+    }
+  };
+
+  const handleReprocessRows = async (rows: ErrorRow[]) => {
+    if (rows.length === 0 || isReprocessing) return;
+
+    setReprocessStatus(null);
+    setIsReprocessing(true);
+
+    let successCount = 0;
+    let failureCount = 0;
+    const failedIds: Array<string | number> = [];
+
+    for (const row of rows) {
+      try {
+        await sendReprocessRequest(row);
+        successCount += 1;
+      } catch (err) {
+        console.error('Error reprocessing row:', row.id, err);
+        failureCount += 1;
+        failedIds.push(row.id);
+      }
+    }
+
+    setSelectedErrorIds(failedIds);
+
+    const total = rows.length;
+    if (failureCount === 0) {
+      setReprocessStatus({
+        type: 'success',
+        message: `Reproceso completado: ${successCount}/${total} enviados correctamente.`,
+      });
+    } else {
+      setReprocessStatus({
+        type: 'error',
+        message: `Reproceso finalizado: ${successCount} exitosos, ${failureCount} fallidos.`,
+      });
+    }
+
     try {
-      const { error } = await supabase.from('errors').update({ processed: true }).eq('id', id);
-      if (error) throw error;
       await fetchErrors();
     } catch (err) {
-      console.error('Error marking processed:', err);
+      console.error('Error refreshing errors after reprocess:', err);
+    } finally {
+      setIsReprocessing(false);
     }
+  };
+
+  const toggleErrorSelection = (id: string | number) => {
+    setSelectedErrorIds((previous) =>
+      previous.includes(id) ? previous.filter((currentId) => currentId !== id) : [...previous, id],
+    );
+  };
+
+  const allVisibleSelected = errors.length > 0 && selectedErrorIds.length === errors.length;
+
+  const toggleSelectAllVisible = () => {
+    if (allVisibleSelected) {
+      setSelectedErrorIds([]);
+      return;
+    }
+
+    setSelectedErrorIds(errors.map((row) => row.id));
+  };
+
+  const handleReprocessSelected = async () => {
+    const selectedRows = errors.filter((row) => selectedErrorIds.includes(row.id));
+    await handleReprocessRows(selectedRows);
+  };
+
+  const handleReprocessAll = async () => {
+    await handleReprocessRows(errors);
   };
 
   useEffect(() => {
@@ -227,6 +339,23 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Url no procesados</h3>
           <p className="text-sm text-gray-600 mb-4">Lista de URLs pendientes de ser procesadas.</p>
 
+          {reprocessStatus && (
+            <div
+              className={`mb-4 flex items-start gap-2 text-sm px-4 py-3 rounded-lg ${
+                reprocessStatus.type === 'success'
+                  ? 'bg-green-50 text-green-700 border border-green-200'
+                  : 'bg-red-50 text-red-700 border border-red-200'
+              }`}
+            >
+              {reprocessStatus.type === 'success' ? (
+                <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              ) : (
+                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              )}
+              <span>{reprocessStatus.message}</span>
+            </div>
+          )}
+
           <div className="space-y-2">
             {loadingErrors ? (
               <p className="text-sm text-gray-500">Cargando...</p>
@@ -237,32 +366,39 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
                 <table className="w-full text-sm text-left">
                   <thead>
                     <tr className="text-gray-600">
+                      <th className="px-2 py-1">
+                        <input
+                          type="checkbox"
+                          checked={allVisibleSelected}
+                          onChange={toggleSelectAllVisible}
+                          disabled={isReprocessing}
+                          aria-label="Seleccionar todos"
+                        />
+                      </th>
                       <th className="px-2 py-1">Fecha</th>
                       <th className="px-2 py-1">Agente de CS</th>
                       <th className="px-2 py-1">URL</th>
                       <th className="px-2 py-1">Adset</th>
                       <th className="px-2 py-1">Procesada</th>
-                      <th className="px-2 py-1">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="text-gray-700">
                     {errors.map((e) => (
                       <tr key={e.id} className="border-t">
+                        <td className="px-2 py-2 align-top">
+                          <input
+                            type="checkbox"
+                            checked={selectedErrorIds.includes(e.id)}
+                            onChange={() => toggleErrorSelection(e.id)}
+                            disabled={isReprocessing}
+                            aria-label={`Seleccionar error ${e.id}`}
+                          />
+                        </td>
                         <td className="px-2 py-2">{e.created_at ? new Date(e.created_at).toLocaleString() : '-'}</td>
                         <td className="px-2 py-2">{e.agente_customer_service ?? '-'}</td>
                         <td className="px-2 py-2 max-w-[30%] truncate">{e.url ?? '-'}</td>
                         <td className="px-2 py-2">{e.adset ?? '-'}</td>
                         <td className="px-2 py-2">{e.processed ? 'Sí' : 'No'}</td>
-                        <td className="px-2 py-2">
-                          {!e.processed && (
-                            <button
-                              onClick={() => markProcessed(e.id)}
-                              className="text-sm text-blue-600 hover:underline"
-                            >
-                              Marcar procesada
-                            </button>
-                          )}
-                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -270,21 +406,40 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
               </div>
             )}
 
-            <div className="flex gap-2 mt-3">
+            <div className="flex flex-wrap gap-2 mt-3">
+              <button
+                type="button"
+                onClick={handleReprocessSelected}
+                disabled={loadingErrors || isReprocessing || selectedErrorIds.length === 0}
+                className="px-3 py-1.5 rounded-md bg-blue-600 text-white disabled:opacity-60"
+              >
+                {isReprocessing
+                  ? 'Reprocesando...'
+                  : `Reprocesar seleccionadas (${selectedErrorIds.length})`}
+              </button>
+              <button
+                type="button"
+                onClick={handleReprocessAll}
+                disabled={loadingErrors || isReprocessing || errors.length === 0}
+                className="px-3 py-1.5 rounded-md bg-indigo-600 text-white disabled:opacity-60"
+              >
+                {isReprocessing ? 'Reprocesando...' : `Reprocesar todas (${errors.length})`}
+              </button>
               <button
                 type="button"
                 onClick={fetchErrors}
-                disabled={loadingErrors}
+                disabled={loadingErrors || isReprocessing}
                 className="px-3 py-1.5 rounded-md bg-primary text-white disabled:opacity-60"
               >
                 {loadingErrors ? 'Cargando...' : 'Refrescar'}
               </button>
               <button
                 type="button"
-                onClick={() => setErrors([])}
+                onClick={() => setSelectedErrorIds([])}
+                disabled={isReprocessing || selectedErrorIds.length === 0}
                 className="px-3 py-1.5 rounded-md bg-gray-200 text-gray-700"
               >
-                Limpiar
+                Limpiar seleccion
               </button>
             </div>
           </div>

@@ -8,6 +8,7 @@ function requireEnvVar(name: string, value: string | undefined) {
 
 export const webhookUrls = {
   createComments: requireEnvVar('VITE_N8N_WEBHOOK_URLS_DATA', import.meta.env.VITE_N8N_WEBHOOK_URLS_DATA),
+  reprocessErrors: requireEnvVar('VITE_N8N_WEBHOOK_REPROCESS_ERRORS', import.meta.env.VITE_N8N_WEBHOOK_REPROCESS_ERRORS),
   regenerateGemini: requireEnvVar('VITE_N8N_WEBHOOK_UPDATE_GEMINI_COMMENTS', import.meta.env.VITE_N8N_WEBHOOK_UPDATE_GEMINI_COMMENTS),
   regenerateGpt: requireEnvVar('VITE_N8N_WEBHOOK_UPDATE_GPT_COMMENTS', import.meta.env.VITE_N8N_WEBHOOK_UPDATE_GPT_COMMENTS),
   regenerateClaude: requireEnvVar('VITE_N8N_WEBHOOK_UPDATE_CLAUDE_COMMENTS', import.meta.env.VITE_N8N_WEBHOOK_UPDATE_CLAUDE_COMMENTS),
