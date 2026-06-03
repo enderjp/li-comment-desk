@@ -29,7 +29,6 @@ interface ErrorRow {
   thumbnail_urls?: string[] | string | null;
   visibility?: string | null;
   media_type?: string | null;
-  processed?: boolean | null;
   [key: string]: unknown;
 }
 
@@ -40,21 +39,24 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
   const [status, setStatus] = useState<StatusMessage | null>(null);
   const [errors, setErrors] = useState<ErrorRow[]>([]);
   const [loadingErrors, setLoadingErrors] = useState(false);
+  const [errorsLoadError, setErrorsLoadError] = useState<string | null>(null);
   const [selectedErrorIds, setSelectedErrorIds] = useState<Array<string | number>>([]);
   const [isReprocessing, setIsReprocessing] = useState(false);
   const [reprocessStatus, setReprocessStatus] = useState<StatusMessage | null>(null);
 
   const fetchErrors = async () => {
     setLoadingErrors(true);
+    setErrorsLoadError(null);
     try {
       const { data, error } = await supabase
-        .from('errors')
+        .from('request_errors')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(500);
 
       if (error) {
-        console.error('Error fetching errors:', error);
+        console.error('Error fetching request_errors:', error);
+        setErrorsLoadError(error.message || 'No se pudieron cargar los errores.');
         setErrors([]);
         setSelectedErrorIds([]);
         return;
@@ -67,7 +69,10 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
         return previous.filter((id) => validIds.has(id));
       });
     } catch (err) {
-      console.error('Unexpected error fetching errors:', err);
+      console.error('Unexpected error fetching request_errors:', err);
+      setErrorsLoadError(
+        err instanceof Error ? err.message : 'No se pudieron cargar los errores.',
+      );
       setErrors([]);
       setSelectedErrorIds([]);
     } finally {
@@ -135,7 +140,7 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
     try {
       await fetchErrors();
     } catch (err) {
-      console.error('Error refreshing errors after reprocess:', err);
+      console.error('Error refreshing request_errors after reprocess:', err);
     } finally {
       setIsReprocessing(false);
     }
@@ -359,6 +364,11 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
           <div className="space-y-2">
             {loadingErrors ? (
               <p className="text-sm text-gray-500">Cargando...</p>
+            ) : errorsLoadError ? (
+              <div className="flex items-start gap-2 text-sm px-3 py-2 rounded-lg bg-red-50 text-red-700 border border-red-200">
+                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>Error al cargar tabla request_errors: {errorsLoadError}</span>
+              </div>
             ) : errors.length === 0 ? (
               <p className="text-sm text-gray-500">No hay URLs pendientes.</p>
             ) : (
@@ -379,7 +389,6 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
                       <th className="px-2 py-1">Agente de CS</th>
                       <th className="px-2 py-1">URL</th>
                       <th className="px-2 py-1">Adset</th>
-                      <th className="px-2 py-1">Procesada</th>
                     </tr>
                   </thead>
                   <tbody className="text-gray-700">
@@ -398,7 +407,6 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
                         <td className="px-2 py-2">{e.agente_customer_service ?? '-'}</td>
                         <td className="px-2 py-2 max-w-[30%] truncate">{e.url ?? '-'}</td>
                         <td className="px-2 py-2">{e.adset ?? '-'}</td>
-                        <td className="px-2 py-2">{e.processed ? 'Sí' : 'No'}</td>
                       </tr>
                     ))}
                   </tbody>
