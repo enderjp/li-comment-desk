@@ -267,7 +267,7 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
         <div className="flex items-center gap-2 mb-2">
           <Shield className="w-6 h-6 text-blue-600" />
@@ -341,8 +341,8 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
         </div>
 
         <div className="border border-gray-200 rounded-xl p-6 bg-gray-50 mt-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Url no procesados</h3>
-          <p className="text-sm text-gray-600 mb-4">Lista de URLs pendientes de ser procesadas.</p>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Requests fallidos</h3>
+          <p className="text-sm text-gray-600 mb-4">Lista de requests pendientes de ser re-procesadas.</p>
 
           {reprocessStatus && (
             <div
