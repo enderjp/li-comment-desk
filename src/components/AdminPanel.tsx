@@ -83,7 +83,7 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
   const sendReprocessRequest = async (row: ErrorRow) => {
     const payload = {
       ...row,
-      errorId: row.id,
+      errorId: String(row.id),
     };
 
     const response = await fetch(webhookUrls.reprocessErrors, {

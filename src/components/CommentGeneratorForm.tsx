@@ -218,7 +218,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
 
       const payload = {
         userId: user?.id,
-        errorId: null,
+        errorId: "null",
         agentCS: formData.agentCS,
         mediaBuyer: formData.mediaBuyer,
         vertical: formData.vertical,
