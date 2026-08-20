@@ -187,9 +187,15 @@ CREATE POLICY "Authenticated read cs agents"
   ON public.customer_service_agents FOR SELECT TO authenticated USING (true);
 
 -- ---------------------------------------------------------------------------
--- requests: legacy table, no code path reads it. RLS on, zero policies,
--- so it is closed to anon and authenticated alike.
+-- requests: legacy table from the first migration, absent in production and
+-- read by no code path. Guarded so this file works whether or not it exists.
+-- If present: RLS on with zero policies, i.e. closed to everyone.
 -- ---------------------------------------------------------------------------
-ALTER TABLE public.requests ENABLE ROW LEVEL SECURITY;
+DO $$
+BEGIN
+  IF to_regclass('public.requests') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.requests ENABLE ROW LEVEL SECURITY';
+  END IF;
+END $$;
 
 COMMIT;

@@ -17,6 +17,11 @@ ALTER TABLE public.notifications           DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.vertical                DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.media_buyer             DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.customer_service_agents DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.requests                DISABLE ROW LEVEL SECURITY;
+DO $$
+BEGIN
+  IF to_regclass('public.requests') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE public.requests DISABLE ROW LEVEL SECURITY';
+  END IF;
+END $$;
 
 COMMIT;

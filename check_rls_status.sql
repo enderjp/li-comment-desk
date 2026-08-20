@@ -1,31 +1,37 @@
--- Read-only. Run before and after the RLS migration to compare.
+-- Read-only diagnostic. Single result set, so the Supabase SQL Editor shows
+-- everything at once instead of just the last statement.
 
-SELECT 'RLS enabled per table' AS section;
-SELECT tablename, rowsecurity AS rls_on
+SELECT 'rls_off' AS check, tablename AS detail, NULL::bigint AS count
 FROM pg_tables
-WHERE schemaname = 'public'
-ORDER BY rowsecurity, tablename;
+WHERE schemaname = 'public' AND NOT rowsecurity
 
-SELECT 'Policies in place' AS section;
-SELECT tablename, policyname, cmd, roles::text, permissive
+UNION ALL
+SELECT 'rls_on', tablename, NULL
+FROM pg_tables
+WHERE schemaname = 'public' AND rowsecurity
+
+UNION ALL
+SELECT 'policy', tablename || ' :: ' || policyname || ' [' || cmd || ']', NULL
 FROM pg_policies
 WHERE schemaname = 'public'
-ORDER BY tablename, cmd, policyname;
 
-SELECT 'Tables with RLS on but no policy (fully closed)' AS section;
-SELECT t.tablename
+UNION ALL
+SELECT 'rls_on_no_policy', t.tablename, NULL
 FROM pg_tables t
-LEFT JOIN pg_policies p
-  ON p.schemaname = t.schemaname AND p.tablename = t.tablename
+LEFT JOIN pg_policies p ON p.schemaname = t.schemaname AND p.tablename = t.tablename
 WHERE t.schemaname = 'public' AND t.rowsecurity AND p.policyname IS NULL
-ORDER BY t.tablename;
 
-SELECT 'Distinct visibility values in comments' AS section;
-SELECT COALESCE(visibility, '(null)') AS visibility, COUNT(*)
-FROM public.comments
-GROUP BY 1 ORDER BY 2 DESC;
+UNION ALL
+SELECT 'visibility', COALESCE(visibility, '(null)'), COUNT(*)
+FROM public.comments GROUP BY visibility
 
-SELECT 'Distinct roles in profiles' AS section;
-SELECT COALESCE(role, '(null)') AS role, COUNT(*)
-FROM public.profiles
-GROUP BY 1 ORDER BY 2 DESC;
+UNION ALL
+SELECT 'role', COALESCE(role, '(null)'), COUNT(*)
+FROM public.profiles GROUP BY role
+
+UNION ALL
+SELECT 'helper_fn', proname, NULL
+FROM pg_proc WHERE proname IN
+  ('current_user_role', 'comment_exists_by_request', 'comment_exists_by_id')
+
+ORDER BY 1, 2;
