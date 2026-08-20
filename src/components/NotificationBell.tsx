@@ -36,25 +36,21 @@ export function NotificationBell({ onNavigateToRequest }: NotificationBellProps)
       for (const notif of notificationsData) {
         let commentExists = true;
 
+        // Asked via RPC so RLS visibility never gets mistaken for deletion:
+        // an admin_only comment is invisible to an agent but still exists.
         if (notif.request_id) {
-          const { data: comment } = await supabase
-            .from('comments')
-            .select('id')
-            .eq('request_id', notif.request_id)
-            .maybeSingle();
+          const { data: exists, error: rpcError } = await supabase
+            .rpc('comment_exists_by_request', { p_request_id: notif.request_id });
 
-          commentExists = !!comment;
+          commentExists = rpcError ? true : !!exists;
         } else if (notif.adset?.includes('POST_ID:')) {
           const match = notif.adset.match(/POST_ID:(\d+)/);
           if (match) {
             const postId = parseInt(match[1], 10);
-            const { data: comment } = await supabase
-              .from('comments')
-              .select('id')
-              .eq('id', postId)
-              .maybeSingle();
+            const { data: exists, error: rpcError } = await supabase
+              .rpc('comment_exists_by_id', { p_id: postId });
 
-            commentExists = !!comment;
+            commentExists = rpcError ? true : !!exists;
           }
         }
 

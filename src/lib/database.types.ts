@@ -270,7 +270,16 @@ export interface Database {
       }
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      comment_exists_by_request: {
+        Args: { p_request_id: number }
+        Returns: boolean
+      }
+      comment_exists_by_id: {
+        Args: { p_id: number }
+        Returns: boolean
+      }
+    }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>
   }
