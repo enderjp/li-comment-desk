@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle2, Loader2, Shield, Upload } from 'lucide-react';
 import { useAuth } from '../contexts/useAuth';
-import { webhookUrls } from '../lib/webhooks';
+import { callWebhook } from '../lib/webhooks';
 import { supabase } from '../lib/supabase';
 
 interface AdminPanelProps {
@@ -86,14 +86,7 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
       errorId: String(row.id),
     };
 
-    const response = await fetch(webhookUrls.reprocessErrors, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
+    const response = await callWebhook('reprocessErrors', payload);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -240,10 +233,7 @@ export function AdminPanel({ isAdmin }: AdminPanelProps) {
       formData.append('file', file);
       formData.append('userId', user?.id ?? '');
 
-      const response = await fetch(webhookUrls.updateFacebookCookies, {
-        method: 'POST',
-        body: formData,
-      });
+      const response = await callWebhook('updateFacebookCookies', formData);
 
       if (!response.ok) {
         throw new Error(`Error HTTP ${response.status}`);

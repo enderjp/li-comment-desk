@@ -3,7 +3,7 @@ import { Loader2, Send, AlertCircle, CheckCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/useAuth';
 import { useLanguage } from '../contexts/useLanguage';
-import { webhookUrls } from '../lib/webhooks';
+import { callWebhook } from '../lib/webhooks';
 
 interface FormData {
   agentCS: string;
@@ -231,15 +231,7 @@ export function CommentGeneratorForm({ onNavigateToComments }: CommentGeneratorF
 
       console.log('Sending payload:', payload);
 
-      const response = await fetch(webhookUrls.createComments, {
-        method: 'POST',
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await callWebhook('createComments', payload);
 
       console.log('Response status:', response.status);
       console.log('Response ok:', response.ok);

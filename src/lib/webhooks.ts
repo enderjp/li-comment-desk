@@ -1,17 +1,46 @@
-function requireEnvVar(name: string, value: string | undefined) {
-  if (!value) {
-    throw new Error(`Missing environment variable: ${name}`);
+import { supabase } from './supabase';
+
+export type WebhookTarget =
+  | 'createComments'
+  | 'reprocessErrors'
+  | 'regenerateGemini'
+  | 'regenerateGpt'
+  | 'regenerateClaude'
+  | 'regenerateScript'
+  | 'updateFacebookCookies';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+/**
+ * Sends a payload to n8n through the `n8n-proxy` edge function. The real n8n
+ * URLs live in server-side secrets, so they never reach the browser bundle.
+ */
+export async function callWebhook(
+  target: WebhookTarget,
+  body: Record<string, unknown> | FormData,
+): Promise<Response> {
+  const { data, error } = await supabase.auth.getSession();
+
+  if (error || !data.session) {
+    throw new Error('No hay una sesion activa');
   }
 
-  return value;
-}
+  const headers: Record<string, string> = {
+    apikey: supabaseAnonKey,
+    Authorization: `Bearer ${data.session.access_token}`,
+  };
 
-export const webhookUrls = {
-  createComments: requireEnvVar('VITE_N8N_WEBHOOK_URLS_DATA', import.meta.env.VITE_N8N_WEBHOOK_URLS_DATA),
-  reprocessErrors: requireEnvVar('VITE_N8N_WEBHOOK_REPROCESS_ERRORS', import.meta.env.VITE_N8N_WEBHOOK_REPROCESS_ERRORS),
-  regenerateGemini: requireEnvVar('VITE_N8N_WEBHOOK_UPDATE_GEMINI_COMMENTS', import.meta.env.VITE_N8N_WEBHOOK_UPDATE_GEMINI_COMMENTS),
-  regenerateGpt: requireEnvVar('VITE_N8N_WEBHOOK_UPDATE_GPT_COMMENTS', import.meta.env.VITE_N8N_WEBHOOK_UPDATE_GPT_COMMENTS),
-  regenerateClaude: requireEnvVar('VITE_N8N_WEBHOOK_UPDATE_CLAUDE_COMMENTS', import.meta.env.VITE_N8N_WEBHOOK_UPDATE_CLAUDE_COMMENTS),
-  regenerateScript: requireEnvVar('VITE_N8N_WEBHOOK_UPDATE_SCRIPT', import.meta.env.VITE_N8N_WEBHOOK_UPDATE_SCRIPT),
-  updateFacebookCookies: requireEnvVar('VITE_N8N_WEBHOOK_UPDATE_FB_COOKIES', import.meta.env.VITE_N8N_WEBHOOK_UPDATE_FB_COOKIES),
-};
+  const isFormData = body instanceof FormData;
+
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json';
+    headers.Accept = 'application/json';
+  }
+
+  return fetch(`${supabaseUrl}/functions/v1/n8n-proxy/${target}`, {
+    method: 'POST',
+    headers,
+    body: isFormData ? body : JSON.stringify(body),
+  });
+}

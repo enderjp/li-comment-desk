@@ -5,7 +5,7 @@ import { MessageSquare, ExternalLink, Calendar, User, Tag, X, FileText, Search, 
 import { DateRangePicker } from './DateRangePicker';
 import { useAuth } from '../contexts/useAuth';
 import { useLanguage } from '../contexts/useLanguage';
-import { webhookUrls } from '../lib/webhooks';
+import { callWebhook } from '../lib/webhooks';
 
 const PAGE_SIZE = 15;
 
@@ -497,13 +497,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         vertical: selectedComment.vertical || ''
       };
 
-      const response = await fetch(webhookUrls.regenerateGemini, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await callWebhook('regenerateGemini', payload);
 
       if (!response.ok) {
         throw new Error('Error al enviar la solicitud');
@@ -541,13 +535,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         vertical: selectedComment.vertical || ''
       };
 
-      const response = await fetch(webhookUrls.regenerateGpt, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await callWebhook('regenerateGpt', payload);
 
       if (!response.ok) {
         throw new Error('Error al enviar la solicitud');
@@ -585,13 +573,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         vertical: selectedComment.vertical || ''
       };
 
-      const response = await fetch(webhookUrls.regenerateClaude, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await callWebhook('regenerateClaude', payload);
 
       if (!response.ok) {
         throw new Error('Error al enviar la solicitud');
@@ -630,13 +612,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         mediaType: selectedComment.media_type || 'video'
       };
 
-      const response = await fetch(webhookUrls.regenerateScript, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await callWebhook('regenerateScript', payload);
 
       if (!response.ok) {
         throw new Error('Error al enviar la solicitud');
