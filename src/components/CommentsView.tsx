@@ -235,7 +235,8 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
       let query = supabase
         .from('comments')
-        .select('*');
+        .select('*')
+        .eq('source', 'comment_desk');
 
       if (userRole === 'agent') {
         console.log('?? Usuario es agent - filtrando solo comentarios públicos');

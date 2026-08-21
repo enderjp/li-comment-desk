@@ -78,6 +78,7 @@ export interface Database {
           thumbnail_urls: string[] | string | null
           visibility: string | null
           media_type: string | null
+          source: string | null
         }
         Insert: {
           id?: number
@@ -95,6 +96,7 @@ export interface Database {
           thumbnail_urls?: string[] | string | null
           visibility?: string | null
           media_type?: string | null
+          source?: string | null
         }
         Update: {
           id?: number
@@ -112,6 +114,7 @@ export interface Database {
           thumbnail_urls?: string[] | string | null
           visibility?: string | null
           media_type?: string | null
+          source?: string | null
         }
         Relationships: []
       }

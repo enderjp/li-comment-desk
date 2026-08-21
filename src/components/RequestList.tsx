@@ -22,6 +22,7 @@ export function RequestList() {
       const { data, error } = (await supabase
         .from('comments')
         .select('*')
+        .eq('source', 'comment_desk')
         .order('created_at', { ascending: false })) as {
         data: Comment[] | null;
         error: Error | null;

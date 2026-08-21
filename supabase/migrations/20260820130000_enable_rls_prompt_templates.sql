@@ -2,7 +2,7 @@
   # Enable RLS on prompt_templates and prompt_templates_safe
 
   These two tables were not covered by 20260820120000 because nothing in this
-  repo references them — they are written and read exclusively by n8n, which
+  repo references them -- they are written and read exclusively by n8n, which
   connects with the service role key and bypasses RLS.
 
   RLS on with zero policies means: closed to anon and authenticated, unchanged
