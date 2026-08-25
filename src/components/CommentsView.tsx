@@ -71,7 +71,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
   // Datos de ejemplo para modo demo
   const mockCommentData: Comment = {
-    id: '1',
+    id: 1,
     request_id: 1,
     agente_customer_service: 'Juan Pérez',
     media_buyer: 'Carlos López',
@@ -80,31 +80,31 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
     adset: 'VideoDemo_HealthProduct_001',
     url: 'https://facebook.com/post/123456789',
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
     script: 'Este es un script de ejemplo para demostración. El usuario puede ver cómo se vería el contenido sin necesidad de tener datos en la base de datos. Este script contiene información sobre el producto que se está promocionando y puede ser usado como base para los comentarios que se generarán.',
     Comentarios: '¡Excelente producto! Me encanta. ¡Recomendado! Acabo de comprarlo y llegó rápido.',
     thumbnail_urls: 'https://via.placeholder.com/400x300?text=Product+Demo',
     visibility: 'public' as const,
     media_type: 'video' as const,
     script_updated_at: new Date().toISOString(),
+    source: null,
   };
 
   const mockGeminiComments: GeminiComment[] = [
     {
-      id: '1',
-      request_id: 1,
+      id: 1,
+      comment_request_id: 1,
       comment_content: 'Increíble este producto, exactamente lo que estaba buscando. Muy buena calidad y rápida entrega.',
       created_at: new Date().toISOString(),
     },
     {
-      id: '2',
-      request_id: 1,
+      id: 2,
+      comment_request_id: 1,
       comment_content: '¡WOW! No puedo creer el cambio en mi vida. Recomiendo ampliamente a todos mis amigos.',
       created_at: new Date().toISOString(),
     },
     {
-      id: '3',
-      request_id: 1,
+      id: 3,
+      comment_request_id: 1,
       comment_content: 'Mejor inversión que he hecho este año. El servicio al cliente fue excelente.',
       created_at: new Date().toISOString(),
     },
@@ -112,14 +112,14 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
   const mockGptComments: GptComment[] = [
     {
-      id: '1',
-      request_id: 1,
+      id: 1,
+      comment_request_id: 1,
       comment_content: 'Acabo de probar esto y estoy sorprendido de lo bien que funciona. Totalmente vale la pena.',
       created_at: new Date().toISOString(),
     },
     {
-      id: '2',
-      request_id: 1,
+      id: 2,
+      comment_request_id: 1,
       comment_content: 'He estado usando este producto durante una semana y puedo notar la diferencia. Muy satisfecho.',
       created_at: new Date().toISOString(),
     },
@@ -127,8 +127,8 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
 
   const mockClaudeComments: ClaudeComment[] = [
     {
-      id: '1',
-      request_id: 1,
+      id: 1,
+      comment_request_id: 1,
       comment_content: 'Simplemente perfecto. Llegó en perfecto estado y funciona maravillosamente. Los vendedores fueron muy atentos.',
       created_at: new Date().toISOString(),
     },
@@ -1785,5 +1785,3 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
     </div>
   );
 }
-
-
