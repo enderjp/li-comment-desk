@@ -3,10 +3,18 @@ import { supabase } from '../lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
 import { AuthContext } from './auth-context';
 
+function hasPasswordRecoveryParams() {
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const searchParams = new URLSearchParams(window.location.search);
+
+  return hashParams.get('type') === 'recovery' || searchParams.get('type') === 'recovery';
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(hasPasswordRecoveryParams);
 
   useEffect(() => {
     // Development mode: bypass authentication for local testing
@@ -18,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: 'dev@example.com',
         email_confirmed_at: new Date().toISOString(),
         phone: '',
-        phone_confirmed_at: null,
+        phone_confirmed_at: undefined,
         confirmed_at: new Date().toISOString(),
         last_sign_in_at: new Date().toISOString(),
         app_metadata: {},
@@ -39,8 +47,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       (async () => {
+        if (event === 'PASSWORD_RECOVERY') {
+          setIsPasswordRecovery(true);
+        }
         setSession(session);
         setUser(session?.user ?? null);
       })();
@@ -71,13 +82,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   };
 
+  const requestPasswordReset = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+    if (error) throw error;
+  };
+
+  const updatePassword = async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw error;
+  };
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        loading,
+        isPasswordRecovery,
+        signIn,
+        signUp,
+        requestPasswordReset,
+        updatePassword,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

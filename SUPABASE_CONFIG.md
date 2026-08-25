@@ -1,8 +1,8 @@
-# Configuración de Supabase para Email Confirmation
+# Configuración de Supabase para Email Confirmation y Password Reset
 
-## ✅ LA RUTA YA EXISTE EN TU APLICACIÓN
+## ✅ LAS RUTAS YA EXISTEN EN TU APLICACIÓN
 
-La página `/auth/confirm` **ya está funcionando** en tu código. Solo necesitas autorizar esta URL en Supabase.
+Las páginas `/auth/confirm` y `/auth/reset-password` **ya están implementadas**. Solo necesitas autorizar sus URLs en Supabase.
 
 ## 🚨 PASO OBLIGATORIO - Configura Supabase AHORA:
 
@@ -15,22 +15,23 @@ La página `/auth/confirm` **ya está funcionando** en tu código. Solo necesita
 https://bolt.new/~/sb1-wrxd6vpu
 ```
 
-**Para desarrollo local:**
+**Para desarrollo local (Vite):**
 ```
-http://localhost:5173
+http://localhost:5173/auth/confirm
+http://localhost:5173/auth/reset-password
 ```
 
-**Para producción (Vercel/Netlify):**
-Después de desplegar, agrega:
+**Para producción:**
 ```
-https://tu-app.vercel.app
+https://comment-desk.leadsicon.com/auth/confirm
+https://comment-desk.leadsicon.com/auth/reset-password
 ```
 
 4. **Guarda los cambios y espera 1-2 minutos**
 
 ## Verificar la configuración:
 
-1. La URL debe ser exactamente la raíz de tu aplicación (SIN rutas adicionales)
+1. Las URLs deben incluir las rutas exactas indicadas arriba
 2. Asegúrate de guardar los cambios en Supabase
 3. Puede tomar unos minutos para que los cambios se apliquen
 
@@ -42,6 +43,14 @@ https://tu-app.vercel.app
 4. La aplicación React detecta automáticamente el token de confirmación en la URL
 5. Se muestra la página de confirmación exitosa
 6. El usuario puede hacer clic en "Ir al Login" para acceder a la plataforma
+
+## Cómo funciona la recuperación de contraseña:
+
+1. El usuario selecciona "¿Olvidaste tu contraseña?" en el login
+2. Supabase envía un correo sin revelar si la cuenta existe
+3. El enlace redirige a `/auth/reset-password` y crea una sesión de recuperación temporal
+4. El usuario escribe y confirma su nueva contraseña
+5. La aplicación actualiza la contraseña y cierra la sesión de recuperación
 
 ## Solución de problemas:
 

@@ -6,15 +6,17 @@ import { useLanguage } from '../contexts/useLanguage';
 import { LanguageToggle } from './LanguageToggle';
 
 export function LoginForm() {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, requestPasswordReset } = useAuth();
   const { t } = useLanguage();
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showEmailSent, setShowEmailSent] = useState(false);
+  const [showPasswordResetSent, setShowPasswordResetSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +24,10 @@ export function LoginForm() {
     setError(null);
 
     try {
-      if (isSignUp) {
+      if (isForgotPassword) {
+        await requestPasswordReset(email);
+        setShowPasswordResetSent(true);
+      } else if (isSignUp) {
         await signUp(email, password, fullName);
         setShowEmailSent(true);
       } else {
@@ -54,7 +59,11 @@ export function LoginForm() {
           {t('common.appName')}
         </h1>
         <p className="text-center text-gray-300 mb-8">
-          {isSignUp ? t('login.subtitleSignUp') : t('login.subtitleSignIn')}
+          {isForgotPassword
+            ? t('login.subtitleForgotPassword')
+            : isSignUp
+              ? t('login.subtitleSignUp')
+              : t('login.subtitleSignIn')}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -90,21 +99,23 @@ export function LoginForm() {
             />
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-100 mb-1">
-              {t('login.password')}
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="w-full px-4 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder={t('login.passwordPlaceholder')}
-            />
-          </div>
+          {!isForgotPassword && (
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-100 mb-1">
+                {t('login.password')}
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                className="w-full px-4 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                placeholder={t('login.passwordPlaceholder')}
+              />
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">
@@ -122,6 +133,8 @@ export function LoginForm() {
                 <Loader2 className="w-4 h-4 animate-spin" />
                 {t('login.pleaseWait')}
               </>
+            ) : isForgotPassword ? (
+              t('login.sendResetLink')
             ) : isSignUp ? (
               t('login.signUp')
             ) : (
@@ -131,20 +144,48 @@ export function LoginForm() {
         </form>
 
         <div className="mt-6 text-center">
-          <button
-            onClick={() => {
-              setIsSignUp(!isSignUp);
-              setError(null);
-              setShowEmailSent(false);
-            }}
-            className="text-sm text-[#D4AE5D] hover:text-[#F2D39A]"
-          >
-            {isSignUp ? t('login.alreadyHaveAccount') : t('login.noAccount')}
-          </button>
+          {isForgotPassword ? (
+            <button
+              type="button"
+              onClick={() => {
+                setIsForgotPassword(false);
+                setError(null);
+              }}
+              className="text-sm text-[#D4AE5D] hover:text-[#F2D39A]"
+            >
+              {t('login.backToSignIn')}
+            </button>
+          ) : (
+            <>
+              {!isSignUp && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotPassword(true);
+                    setError(null);
+                  }}
+                  className="block mx-auto mb-3 text-sm text-[#D4AE5D] hover:text-[#F2D39A]"
+                >
+                  {t('login.forgotPassword')}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setError(null);
+                  setShowEmailSent(false);
+                }}
+                className="text-sm text-[#D4AE5D] hover:text-[#F2D39A]"
+              >
+                {isSignUp ? t('login.alreadyHaveAccount') : t('login.noAccount')}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
-      {showEmailSent && (
+      {(showEmailSent || showPasswordResetSent) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
             <div className="text-center">
@@ -152,18 +193,22 @@ export function LoginForm() {
                 <Mail className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {t('login.verifyTitle')}
+                {showPasswordResetSent ? t('login.resetEmailTitle') : t('login.verifyTitle')}
               </h3>
               <p className="text-gray-600 mb-6">
-                {t('login.verifyDescription', { email })}
+                {showPasswordResetSent
+                  ? t('login.resetEmailDescription', { email })
+                  : t('login.verifyDescription', { email })}
               </p>
               <button
                 onClick={() => {
                   setShowEmailSent(false);
+                  setShowPasswordResetSent(false);
                   setEmail('');
                   setPassword('');
                   setFullName('');
                   setIsSignUp(false);
+                  setIsForgotPassword(false);
                 }}
                 className="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary-hover transition-colors font-medium"
               >

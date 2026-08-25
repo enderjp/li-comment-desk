@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './contexts/useAuth';
 import { LoginForm } from './components/LoginForm';
 import { EmailConfirmation } from './components/EmailConfirmation';
+import { ResetPasswordForm } from './components/ResetPasswordForm';
 import { Sidebar } from './components/Sidebar';
 import { CommentGeneratorForm } from './components/CommentGeneratorForm';
 import { CommentsView } from './components/CommentsView';
@@ -13,12 +14,14 @@ import { supabase } from './lib/supabase';
 import { Loader2, Zap } from 'lucide-react';
 
 function App() {
-  const { user, loading } = useAuth();
+  const { user, loading, isPasswordRecovery } = useAuth();
   const { t } = useLanguage();
   const [currentView, setCurrentView] = useState<'generator' | 'comments' | 'admin'>('generator');
   const [prefilterAdset, setPrefilterAdset] = useState<string>('');
   const [selectedRequestId, setSelectedRequestId] = useState<string>('');
   const [isConfirmPage, setIsConfirmPage] = useState(false);
+  const isResetPasswordPage =
+    window.location.pathname.replace(/\/$/, '') === '/auth/reset-password' || isPasswordRecovery;
   const [lightMode, setLightMode] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -75,6 +78,10 @@ function App() {
 
   if (isConfirmPage) {
     return <EmailConfirmation />;
+  }
+
+  if (isResetPasswordPage) {
+    return <ResetPasswordForm />;
   }
 
   if (loading) {

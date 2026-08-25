@@ -26,6 +26,8 @@ export function EmailConfirmation() {
     window.location.href = '/';
   };
 
+  if (verifying) {
+    return (
       <div className="min-h-screen bg-gradient-to-br from-primary-soft to-[#f8f4e7] flex items-center justify-center px-4">
         <div className="max-w-md w-full bg-[#f8f4e7] rounded-xl shadow-lg p-8">
           <div className="text-center">
@@ -41,6 +43,8 @@ export function EmailConfirmation() {
           </div>
         </div>
       </div>
+    );
+  }
 
   if (error || !user) {
     return (

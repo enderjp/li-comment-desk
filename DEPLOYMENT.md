@@ -4,7 +4,8 @@
 
 - Es una SPA de Vite/React que genera archivos estaticos en `dist/`.
 - El frontend usa `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`.
-- La autenticacion de Supabase usa `window.location.origin` y la ruta `/auth/confirm`.
+- La autenticacion de Supabase usa `window.location.origin` y las rutas
+  `/auth/confirm` y `/auth/reset-password`.
 - Los webhooks de n8n se llaman a traves de la edge function `n8n-proxy`; sus URLs viven en secrets de Supabase, no en el bundle.
 
 ## Checklist antes de subir a GitHub
@@ -68,9 +69,11 @@ Cuando ya tengas el repo creado, puedes versionar un `.do/app.yaml` para repetir
 2. Define `Site URL` con la URL final de produccion.
 3. Agrega al allowlist al menos:
    - `http://localhost:5173/**`
-   - `https://TU_APP.ondigitalocean.app/auth/confirm`
+   - `https://comment-desk.leadsicon.com/auth/confirm`
+   - `https://comment-desk.leadsicon.com/auth/reset-password`
 4. Si luego usas dominio propio, agrega tambien su variante:
    - `https://tudominio.com/auth/confirm`
+   - `https://tudominio.com/auth/reset-password`
 
 ## Limpieza opcional recomendada
 
@@ -119,3 +122,36 @@ El rol se lee de `profiles.role`. `SUPABASE_URL`, `SUPABASE_ANON_KEY` y
 La funcion sobrescribe `userId` / `UserId` del payload con el id del JWT, asi
 que ya no es falsificable desde el navegador. Los workflows de n8n siguen
 recibiendo el mismo campo con el mismo nombre.
+
+## Cambio administrativo de contrasena
+
+La edge function `supabase/functions/update-user-password` permite que un
+administrador cambie la contrasena de un usuario sin exponer la
+`SUPABASE_SERVICE_ROLE_KEY` en el navegador.
+
+La funcion exige:
+
+- un JWT valido en la cabecera `Authorization`;
+- que el usuario autenticado tenga `profiles.role = 'admin'`;
+- un `userId` UUID valido;
+- una contrasena de entre 8 y 72 caracteres.
+
+Ejemplo desde codigo cliente autenticado:
+
+```ts
+const { data, error } = await supabase.functions.invoke('update-user-password', {
+  body: {
+    userId,
+    password,
+  },
+})
+```
+
+No guardes contrasenas en el repositorio, logs, variables `VITE_` ni historial
+del shell. La funcion tampoco registra la contrasena recibida.
+
+Para desplegarla manualmente:
+
+```sh
+supabase functions deploy update-user-password
+```
