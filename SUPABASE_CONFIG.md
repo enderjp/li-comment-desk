@@ -23,8 +23,8 @@ http://localhost:5173/auth/reset-password
 
 **Para producción:**
 ```
+https://comment-desk.leadsicon.com/
 https://comment-desk.leadsicon.com/auth/confirm
-https://comment-desk.leadsicon.com/auth/reset-password
 ```
 
 4. **Guarda los cambios y espera 1-2 minutos**
@@ -48,9 +48,10 @@ https://comment-desk.leadsicon.com/auth/reset-password
 
 1. El usuario selecciona "¿Olvidaste tu contraseña?" en el login
 2. Supabase envía un correo sin revelar si la cuenta existe
-3. El enlace redirige a `/auth/reset-password` y crea una sesión de recuperación temporal
-4. El usuario escribe y confirma su nueva contraseña
-5. La aplicación actualiza la contraseña y cierra la sesión de recuperación
+3. El enlace vuelve a la raíz y crea una sesión de recuperación temporal
+4. La aplicación detecta `PASSWORD_RECOVERY` y muestra el formulario de nueva contraseña
+5. El usuario escribe y confirma su nueva contraseña
+6. La aplicación actualiza la contraseña y cierra la sesión de recuperación
 
 ## Solución de problemas:
 

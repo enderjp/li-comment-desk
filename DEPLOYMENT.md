@@ -4,8 +4,9 @@
 
 - Es una SPA de Vite/React que genera archivos estaticos en `dist/`.
 - El frontend usa `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`.
-- La autenticacion de Supabase usa `window.location.origin` y las rutas
-  `/auth/confirm` y `/auth/reset-password`.
+- La recuperacion de contrasena vuelve a `window.location.origin` y la app
+  detecta el evento `PASSWORD_RECOVERY` para mostrar el formulario. Esto evita
+  depender de rewrites de rutas profundas en el hosting estatico.
 - Los webhooks de n8n se llaman a traves de la edge function `n8n-proxy`; sus URLs viven en secrets de Supabase, no en el bundle.
 
 ## Checklist antes de subir a GitHub
@@ -69,11 +70,11 @@ Cuando ya tengas el repo creado, puedes versionar un `.do/app.yaml` para repetir
 2. Define `Site URL` con la URL final de produccion.
 3. Agrega al allowlist al menos:
    - `http://localhost:5173/**`
+   - `https://comment-desk.leadsicon.com/`
    - `https://comment-desk.leadsicon.com/auth/confirm`
-   - `https://comment-desk.leadsicon.com/auth/reset-password`
 4. Si luego usas dominio propio, agrega tambien su variante:
+   - `https://tudominio.com/`
    - `https://tudominio.com/auth/confirm`
-   - `https://tudominio.com/auth/reset-password`
 
 ## Limpieza opcional recomendada
 

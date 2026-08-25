@@ -84,7 +84,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const requestPasswordReset = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
+      // Use the origin as the callback because the production static host does
+      // not currently rewrite deep links to index.html. The recovery hash/event
+      // is what tells App to render ResetPasswordForm.
+      redirectTo: `${window.location.origin}/`,
     });
     if (error) throw error;
   };
