@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertCircle, CheckCircle, Loader2, LogIn } from 'lucide-react';
+import { AlertCircle, CheckCircle, Eye, EyeOff, Loader2, LogIn } from 'lucide-react';
 import logoLi from '../assets/logoli1.png';
 import { useAuth } from '../contexts/useAuth';
 import { useLanguage } from '../contexts/useLanguage';
@@ -10,6 +10,8 @@ export function ResetPasswordForm() {
   const { t } = useLanguage();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -106,34 +108,58 @@ export function ResetPasswordForm() {
             <label htmlFor="new-password" className="block text-sm font-medium text-gray-100 mb-1">
               {t('login.newPassword')}
             </label>
-            <input
-              id="new-password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-              minLength={6}
-              autoComplete="new-password"
-              className="w-full px-4 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder={t('login.passwordPlaceholder')}
-            />
+            <div className="relative">
+              <input
+                id="new-password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+                minLength={6}
+                autoComplete="new-password"
+                className="w-full pl-4 pr-11 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                placeholder={t('login.passwordPlaceholder')}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((current) => !current)}
+                aria-label={t(showPassword ? 'login.hidePassword' : 'login.showPassword')}
+                aria-pressed={showPassword}
+                title={t(showPassword ? 'login.hidePassword' : 'login.showPassword')}
+                className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-gray-500 hover:text-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
           </div>
 
           <div>
             <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-100 mb-1">
               {t('login.confirmPassword')}
             </label>
-            <input
-              id="confirm-password"
-              type="password"
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              required
-              minLength={6}
-              autoComplete="new-password"
-              className="w-full px-4 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder={t('login.passwordPlaceholder')}
-            />
+            <div className="relative">
+              <input
+                id="confirm-password"
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                required
+                minLength={6}
+                autoComplete="new-password"
+                className="w-full pl-4 pr-11 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                placeholder={t('login.passwordPlaceholder')}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((current) => !current)}
+                aria-label={t(showConfirmPassword ? 'login.hidePassword' : 'login.showPassword')}
+                aria-pressed={showConfirmPassword}
+                title={t(showConfirmPassword ? 'login.hidePassword' : 'login.showPassword')}
+                className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-gray-500 hover:text-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+              >
+                {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
           </div>
 
           {error && <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">{error}</div>}
