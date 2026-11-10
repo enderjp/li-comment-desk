@@ -1,8 +1,9 @@
 ﻿import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { Comment, GeminiComment, GptComment, ClaudeComment } from '../lib/database.types';
-import { MessageSquare, ExternalLink, Calendar, User, Tag, X, FileText, Search, Filter, Bot, Sparkles, ChevronDown, ChevronUp, Copy, Check, RefreshCw } from 'lucide-react';
+import { MessageSquare, ExternalLink, Calendar, User, Tag, X, FileText, Search, Filter, Bot, Sparkles, ChevronDown, ChevronUp, Copy, Check, RefreshCw, Trash2 } from 'lucide-react';
 import { DateRangePicker } from './DateRangePicker';
+import { DeletePostDialog } from './DeletePostDialog';
 import { useAuth } from '../contexts/useAuth';
 import { useLanguage } from '../contexts/useLanguage';
 import { callWebhook } from '../lib/webhooks';
@@ -42,6 +43,12 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
   const [showClaudeSuccessModal, setShowClaudeSuccessModal] = useState(false);
   const [showScriptSuccessModal, setShowScriptSuccessModal] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [postToDelete, setPostToDelete] = useState<Comment | null>(null);
+  const [deletingPost, setDeletingPost] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteNotice, setDeleteNotice] = useState<{ key: string; id: number } | null>(null);
+  const deletingPostRef = useRef(false);
+  const deletedPostIds = useRef(new Set<number>());
 
   const [agents, setAgents] = useState<string[]>([]);
   const [mediaBuyers, setMediaBuyers] = useState<string[]>([]);
@@ -253,8 +260,9 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
       console.log('?? Comentarios cargados:', data?.length || 0);
       console.log('?? Request IDs cargados:', data?.map(c => c.request_id).join(', '));
 
-      setComments((data ?? []) as Comment[]);
-      extractFilterOptions((data ?? []) as Comment[]);
+      // A realtime refresh started before deletion may still contain the removed post.
+      const visibleComments = (data ?? []).filter(comment => !deletedPostIds.current.has(comment.id));
+      setComments(visibleComments);
     } catch (err) {
       console.error('Error fetching comments:', err);
       setError(err instanceof Error ? err.message : 'Error al cargar los comentarios');
@@ -274,7 +282,6 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
       setTimeout(() => {
         setComments([mockCommentData]);
         setFilteredComments([mockCommentData]); // ? Importante: También cargar los comentarios filtrados
-        extractFilterOptions([mockCommentData]);
         setLoading(false);
       }, 300);
     } else if (userRole !== null) {
@@ -302,7 +309,8 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
     }
   }, [fetchComments, userRole, demoMode]);
 
-  const extractFilterOptions = (data: Comment[]) => {
+  useEffect(() => {
+    const data = comments;
     const uniqueAgents = [...new Set(data.map(c => c.agente_customer_service).filter(Boolean))] as string[];
     const uniqueMediaBuyers = [...new Set(data.map(c => c.media_buyer).filter(Boolean))] as string[];
     const uniqueVerticals = [...new Set(data.map(c => c.vertical).filter(Boolean))] as string[];
@@ -310,7 +318,7 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
     setAgents(uniqueAgents.sort());
     setMediaBuyers(uniqueMediaBuyers.sort());
     setVerticals(uniqueVerticals.sort());
-  };
+  }, [comments]);
 
   const runFilter = useCallback((
     data: Comment[],
@@ -467,6 +475,55 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
     // Clear the selectedRequestId filter when closing modal
     if (onClearPrefilter) {
       onClearPrefilter();
+    }
+  };
+
+  const requestPostDeletion = (comment: Comment) => {
+    setDeleteError(null);
+    setDeleteNotice(null);
+    setPostToDelete(comment);
+  };
+
+  const handleDeletePost = async () => {
+    if (!postToDelete || deletingPostRef.current || (!demoMode && !user)) return;
+    const post = postToDelete;
+    deletingPostRef.current = true;
+    setDeletingPost(true);
+    setDeleteError(null);
+
+    try {
+      if (!demoMode) {
+        const { data, error: deletionError } = await supabase
+          .from('comments')
+          .delete()
+          .eq('id', post.id)
+          .eq('source', 'comment_desk')
+          .select('id');
+
+        if (deletionError) throw deletionError;
+        if (!data?.some(deleted => deleted.id === post.id)) {
+          setDeleteNotice({ key: 'commentsView.deleteUnavailable', id: post.id });
+          setPostToDelete(null);
+          if (selectedComment?.id === post.id) handleCloseModal();
+          await fetchComments();
+          return;
+        }
+      }
+
+      if (!demoMode) deletedPostIds.current.add(post.id);
+      setComments(current => current.filter(comment => comment.id !== post.id));
+      setFilteredComments(current => current.filter(comment => comment.id !== post.id));
+      setCurrentPage(1);
+      setLightPage(1);
+      if (selectedComment?.id === post.id) handleCloseModal();
+      setPostToDelete(null);
+      setDeleteNotice({ key: 'commentsView.deleteSuccess', id: post.id });
+    } catch (err) {
+      console.error('Error deleting post:', err);
+      setDeleteError(t('commentsView.deleteError'));
+    } finally {
+      deletingPostRef.current = false;
+      setDeletingPost(false);
     }
   };
 
@@ -698,27 +755,11 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
     apply: t('commentsView.dateApply'),
   };
 
-  if (comments.length === 0) {
-    return (
-      <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">
-            {t('commentsView.noCommentsTitle')}
-          </h3>
-          <p className="text-gray-500">
-            {t('commentsView.noCommentsDescription')}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h2 className="text-[2rem] font-bold text-accent-gram mb-2">{t('commentsView.title')}</h2>
+          <h2 id="comments-view-heading" tabIndex={-1} className="text-[2rem] font-bold text-accent-gram mb-2">{t('commentsView.title')}</h2>
           <p className="text-gray-600">
             {commentsSummary}
             {pageSummary}
@@ -737,6 +778,12 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
           {demoMode ? '? Modo Demo Activo' : 'Activar Modo Demo'}
         </button> */}
       </div>
+
+      {deleteNotice && (
+        <p role="status" className="mb-6 rounded-lg bg-gray-100 p-4 text-sm text-gray-900">
+          {t(deleteNotice.key, { id: String(deleteNotice.id) })}
+        </p>
+      )}
 
       <div className={`bg-white rounded-xl shadow-sm border p-6 mb-8 ${lightMode ? 'border-accent-soft-border bg-accent-soft/30' : 'border-gray-200'}`}>
         <div className="flex items-center gap-2 mb-4">
@@ -896,10 +943,10 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
           <Search className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-700 mb-2">
-            {t('commentsView.noResultsTitle')}
+            {t(comments.length === 0 ? 'commentsView.noCommentsTitle' : 'commentsView.noResultsTitle')}
           </h3>
           <p className="text-gray-500 mb-4">
-            {t('commentsView.noResultsDescription')}
+            {t(comments.length === 0 ? 'commentsView.noCommentsDescription' : 'commentsView.noResultsDescription')}
           </p>
           <button
             onClick={clearFilters}
@@ -922,9 +969,25 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
                     <MessageSquare className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-gray-900">{t('commentsView.postLabel')} #{comment.id}</span>
                   </div>
-                  {lightMode && (
-                    <span className="text-xs text-gray-400">{new Date(comment.created_at).toLocaleDateString(locale)}</span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {lightMode && (
+                      <span className="text-xs text-gray-500">{new Date(comment.created_at).toLocaleDateString(locale)}</span>
+                    )}
+                    {(user || demoMode) && (
+                      <button
+                        type="button"
+                        aria-label={t('commentsView.deletePostLabel', { id: String(comment.id) })}
+                        title={t('commentsView.deletePost')}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          requestPostDeletion(comment);
+                        }}
+                        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-red-700 hover:bg-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
+                      >
+                        <Trash2 aria-hidden="true" className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {!lightMode ? (
@@ -1101,14 +1164,29 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
           <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col animate-in fade-in zoom-in duration-200">
             <div className="flex-shrink-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900">
-                {t('commentsView.modalTitle', { id: String(selectedComment.request_id) })}
+                {t('commentsView.modalTitle', { id: String(selectedComment.id) })}
               </h2>
-              <button
-                onClick={handleCloseModal}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X className="w-6 h-6 text-gray-500" />
-              </button>
+              <div className="flex shrink-0 items-center gap-2">
+                {(user || demoMode) && (
+                  <button
+                    type="button"
+                    onClick={() => requestPostDeletion(selectedComment)}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
+                  >
+                    <Trash2 aria-hidden="true" className="h-4 w-4" />
+                    <span className="hidden sm:inline">{t('commentsView.deletePost')}</span>
+                    <span className="sr-only sm:hidden">{t('commentsView.deletePost')}</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  aria-label={t('commentsView.close')}
+                  onClick={handleCloseModal}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6 text-gray-500" />
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -1673,6 +1751,18 @@ export function CommentsView({ prefilterAdset = '', selectedRequestId = '', ligh
             </div>
           </div>
         </div>
+      )}
+
+      {postToDelete && (
+        <DeletePostDialog
+          post={postToDelete}
+          deleting={deletingPost}
+          error={deleteError}
+          onCancel={() => {
+            if (!deletingPostRef.current) setPostToDelete(null);
+          }}
+          onConfirm={handleDeletePost}
+        />
       )}
 
       {showSuccessModal && (
